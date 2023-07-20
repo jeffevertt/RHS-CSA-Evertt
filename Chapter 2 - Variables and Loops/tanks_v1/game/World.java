@@ -1,3 +1,5 @@
+package game;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -7,7 +9,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -54,7 +55,7 @@ public class World extends JPanel implements ActionListener {
     }
 
     // Member functions (methods)...
-    public World() {
+    protected World() {
         // Resize event...
         this.addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent componentEvent) {
@@ -84,14 +85,6 @@ public class World extends JPanel implements ActionListener {
             repaint();
         }
     }
-
-    // Key press support...
-    public void keyPressed(KeyEvent e) {    
-    }
-    public void keyReleased(KeyEvent e) {    
-    }
-    public void keyTyped(KeyEvent e) {    
-    }        
     
     // Draw functions...
     private void drawGrid(Graphics2D g) {

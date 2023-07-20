@@ -1,3 +1,5 @@
+package game;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
@@ -23,9 +25,18 @@ public class Ammo extends GameObject {
 	public int getPlayerIdx() {
 		return this.playerIdx;
 	}
+	public Vec2 getDir() {
+		return vel.unit();
+	}
+	public Vec2 getVel() {
+		return Vec2.copy(this.vel);
+	}
+	public double getRadius() {
+		return this.radius;
+	}
 
     // Member functions (methods)...
-    public Ammo(int playerIdx, Vec2 pos, Vec2 dir, double maxRange) {
+    protected Ammo(int playerIdx, Vec2 pos, Vec2 dir, double maxRange) {
 		// Parent...
 		super();
 
@@ -39,12 +50,12 @@ public class Ammo extends GameObject {
 		this.timeTillDeath = 0;
     }
 
-	public void destroy() {
+	protected void destroy() {
 		// Super...
 		super.destroy();
 	}
 	
-	public boolean shouldBeCulled() {
+	protected boolean shouldBeCulled() {
 		// Check if on field...
 		if (!Util.isInsideField(this.pos)) {
 		 	return true;
@@ -58,7 +69,7 @@ public class Ammo extends GameObject {
 		return false;
 	}
 	
-	public void update(double deltaTime) {
+	protected void update(double deltaTime) {
 		// Super...
 		super.update(deltaTime);
 
@@ -119,11 +130,11 @@ public class Ammo extends GameObject {
 		}
 	}
 
-    public double calcDrawScale() {
+    protected double calcDrawScale() {
 		return Math.max(1.0 - this.timeTillDeath, 0.001) * Math.min(timeSinceBorn * 5, 1);
 	}	
 
-	public void drawShadow(Graphics2D g) {
+	protected void drawShadow(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
 		Color colorShadow = Util.colorLerp(World.COLOR_BACKGROUND, World.COLOR_SHADOW, timeSinceBorn * 2.0f);
@@ -132,7 +143,7 @@ public class Ammo extends GameObject {
 		Draw.drawRectShadow(g, this.pos, calcDrawHeight(AMMO_HEIGHT, scale), new Vec2(AMMO_RADIUS, AMMO_RADIUS), scale, colorShadow, AMMO_RADIUS);
     }
 
-    public void draw(Graphics2D g) {
+    protected void draw(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
 		double height = AMMO_HEIGHT;

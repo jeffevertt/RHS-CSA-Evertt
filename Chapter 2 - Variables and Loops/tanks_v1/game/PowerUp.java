@@ -1,3 +1,5 @@
+package game;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
@@ -19,9 +21,12 @@ public class PowerUp extends GameObject {
 	public String getType() {
 		return type;
 	}
+	public Vec2 getHalfDims() {
+		return Vec2.copy(POWERUP_HALFDIMS);
+	}
 
 	// Member functions (methods)...
-	public PowerUp(Vec2 pos, String type) {
+	protected PowerUp(Vec2 pos, String type) {
 		// Parent...
 		super();
 
@@ -30,16 +35,16 @@ public class PowerUp extends GameObject {
 		this.type = type;
 		this.timeTillDeath = 0;
     }
-	public PowerUp(Vec2 pos) {
+	protected PowerUp(Vec2 pos) {
 		this(pos, "P");
 	}
 
-	public void destroy() {
+	protected void destroy() {
 		// Super...
 		super.destroy();		
 	}
 	
-	public boolean shouldBeCulled() {
+	protected boolean shouldBeCulled() {
 		// Check death timer...
 		if (this.timeTillDeath >= 1) {
 			return true;
@@ -47,7 +52,7 @@ public class PowerUp extends GameObject {
 		return false;
 	}
 	
-	public void update(double deltaTime) {
+	protected void update(double deltaTime) {
 		// Super...
 		super.update(deltaTime);
 
@@ -75,7 +80,7 @@ public class PowerUp extends GameObject {
 		}
 	}
 
-	public void drawShadow(Graphics2D g) {
+	protected void drawShadow(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
 		Color colorShadow = Util.colorLerp(World.COLOR_BACKGROUND, World.COLOR_SHADOW, timeSinceBorn * 2.0f);
@@ -84,7 +89,7 @@ public class PowerUp extends GameObject {
 		Draw.drawRectShadow(g, this.pos, calcDrawHeight(POWERUP_HEIGHT, scale), POWERUP_HALFDIMS, scale, colorShadow, POWERUP_ROUNDED_SIZE);
 	}
 
-	public void draw(Graphics2D g) {
+	protected void draw(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
 		double height = calcDrawHeight(POWERUP_HEIGHT, scale);

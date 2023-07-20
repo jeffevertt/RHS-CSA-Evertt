@@ -1,3 +1,5 @@
+package game;
+
 public class Vec2 {
     public double x = 0, y = 0;
 

@@ -1,9 +1,14 @@
+package game;
+
 import java.util.ArrayList;
 import java.time.LocalTime;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.time.Duration;
+
+import ai.TankAI;
+import ai.OtherAI;
 
 public class Tank extends GameObject {
     // Constants...
@@ -15,9 +20,9 @@ public class Tank extends GameObject {
 	public final static double TURRET_HALFLENGTH = 0.375;
 	public final static double TURRET_HALFWIDTH = 0.1;
 
-	public static final double TANK_HEIGHT_BODY = 0.7;
-	public static final double TANK_HEIGHT_TREADS = 0.2;
-	public static final double TANK_HEIGHT_TURRET = 1.2;
+	protected static final double TANK_HEIGHT_BODY = 0.7;
+	protected static final double TANK_HEIGHT_TREADS = 0.2;
+	protected static final double TANK_HEIGHT_TURRET = 1.2;
 	private static final double TANK_STROKE_WIDTH = 0.05;
 	private static final double TANK_TURRET_STROKE_WIDTH = 0.035;
 	private static final double TANK_ROUNDED_SIZE = 0.1;
@@ -34,14 +39,14 @@ public class Tank extends GameObject {
 	public final static double STARTING_TURN_SPEED = 90;	// degrees per second
 
 	// TankCmd (nested classes)...
-    public abstract class TankCmd {
+    protected abstract class TankCmd {
 		public String type = "";
 		public double progress = 0;
 
 		public Vec2 startPos;
 		public Vec2 startDir;
 	}
-    public class TankCmd_Move extends TankCmd {
+    protected class TankCmd_Move extends TankCmd {
         static final String TYPE = "move";
 		public Vec2 moveVec;
         TankCmd_Move(Vec2 moveVec) {
@@ -52,7 +57,7 @@ public class Tank extends GameObject {
 			return TYPE + ": moveVec=" + this.moveVec;
 		}
     }
-    public class TankCmd_Turn extends TankCmd {
+    protected class TankCmd_Turn extends TankCmd {
         static final String TYPE = "turn";
 		public Vec2 dir;
         TankCmd_Turn(Vec2 dir) {
@@ -63,7 +68,7 @@ public class Tank extends GameObject {
 			return TYPE + ": dir=" + this.dir;
 		}
     }
-    public class TankCmd_Shoot extends TankCmd {
+    protected class TankCmd_Shoot extends TankCmd {
         static final String TYPE = "shoot";
 		public Vec2 dir;
         TankCmd_Shoot(Vec2 dir) {
@@ -76,7 +81,7 @@ public class Tank extends GameObject {
     }
 
 	// Track stats for UI display...
-	public class UIStats {
+	protected class UIStats {
         public double timeSinceFeedbackCodeClean = 100000;
 	    public double timeSinceFeedbackCodeError = 100000;
 
@@ -104,27 +109,30 @@ public class Tank extends GameObject {
 	private ArrayList<TankCmd> queuedCommands = new ArrayList<TankCmd>();
 
 	// Accessors...
-	public int getPlayerIdx() {
+	protected int getPlayerIdx() {
 		return this.playerIdx;
 	}
-	public Vec2 getDir() {
-		return dir;
+	protected Vec2 getDir() {
+		return Vec2.copy(this.dir);
 	}
 	public Vec2 forward() {
-		return this.dir;
+		return Vec2.copy(this.dir);
 	}
 	public Vec2 right() {
 		return new Vec2(this.dir.y, -this.dir.x);
 	}
+	public Vec2 getHalfDims() {
+		return new Vec2(BODY_HALFSIZE.x, BODY_HALFSIZE.x);
+	}
 	public Vec2 ammoSpawnLocation() {
 		return this.toWorld(new Vec2(TURRET_HALFLENGTH - TURRET_INSET, 0));
 	}
-	public UIStats getUIStats() {
+	protected UIStats getUIStats() {
 		return uiStats;
 	}
 	
 	// Member functions (methods)...
-    public Tank(int playerIdx, Vec2 pos, Vec2 dir) {
+    protected Tank(int playerIdx, Vec2 pos, Vec2 dir) {
 		// Parent...
 		super();
 
@@ -137,15 +145,15 @@ public class Tank extends GameObject {
 		reset();
     }
 	
-	public void create() {
+	protected void create() {
 	}
 	
-	public void destroy() {
+	protected void destroy() {
 		// Super...
 		super.destroy();		
 	}
 
-	public void reset() {
+	protected void reset() {
 		// Stats...
 		uiStats.reset();
 
@@ -160,7 +168,7 @@ public class Tank extends GameObject {
 		this.timeLastShot = LocalTime.now();		
 	}
 	
-	public void kickBackTank(Vec2 dir) {
+	protected void kickBackTank(Vec2 dir) {
 		// If we are in the middle of a move, stop it...
 		if ((this.activeCommand != null) && (this.activeCommand.type.equals(TankCmd_Move.TYPE))) {
 			this.finishActiveCommand();
@@ -191,7 +199,7 @@ public class Tank extends GameObject {
 		return Vec2.add(Vec2.add(this.pos, Vec2.multiply(this.forward(), pt.x)), Vec2.multiply(this.dir, pt.y));
 	}
 	
-	public void onCollected(PowerUp powerup) {
+	protected void onCollected(PowerUp powerup) {
 		// Trigger death spiral...
 		this.timeTillDeath = Math.max(this.timeTillDeath, 0.0001);
 		
@@ -215,7 +223,7 @@ public class Tank extends GameObject {
 		}
 	}
 
-	public boolean execPlayerAI() {
+	protected boolean execPlayerAI() {
 		// Basic checks...
 		if (ai == null) {
 			return false;
@@ -229,7 +237,7 @@ public class Tank extends GameObject {
 		return true;
 	}
 	
-	public boolean queueCommand(String cmdStr, Vec2 param) {	
+	protected boolean queueCommand(String cmdStr, Vec2 param) {	
 		return queueCommand(cmdStr, param, false);
 	}
 	private boolean queueCommand(String cmdStr, Vec2 param, boolean insertFront) {
@@ -289,7 +297,7 @@ public class Tank extends GameObject {
 		return true;
 	}
 	
-	public void finishActiveCommand() {
+	protected void finishActiveCommand() {
 		// Done with this one...
 		this.activeCommand = null;
 		
@@ -337,7 +345,7 @@ public class Tank extends GameObject {
 		Game.get().awardPoints(pointCost, this.playerIdx);
 	}
 	
-	public void updateCommand(double deltaTime) {
+	protected void updateCommand(double deltaTime) {
 		if (this.activeCommand == null) {
 			// Check for queued...
 			if (this.queuedCommands.size() > 0) {
@@ -427,7 +435,7 @@ public class Tank extends GameObject {
 		return ((this.activeCommand != null) || (this.queuedCommands.size() > 0)) ? true : false;
 	}
 
-    public void update(double deltaTime) {
+    protected void update(double deltaTime) {
 		// Super...
 		super.update(deltaTime);
 		
@@ -440,7 +448,7 @@ public class Tank extends GameObject {
         uiStats.update(deltaTime);
 	}
 
-	private AffineTransform calcTransform(double height, double scale, boolean isShadow) {
+	protected AffineTransform calcTransform(double height, double scale, boolean isShadow) {
 		// Calc the center position, using the height...
 		double drawHeight = calcDrawHeight(height, scale);
 		Vec2 drawPos = isShadow ? Vec2.subtract(pos, Vec2.multiply(Draw.HEIGHT_OFFSET_PER_HEIGHT, drawHeight)) : Vec2.add(pos, Vec2.multiply(Draw.HEIGHT_OFFSET_PER_HEIGHT, drawHeight));
@@ -454,7 +462,7 @@ public class Tank extends GameObject {
 		return transform;
 	}
 
-	public void drawShadow(Graphics2D g) {
+	protected void drawShadow(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
 		Color colorShadow = Util.colorLerp(World.COLOR_BACKGROUND, World.COLOR_SHADOW, timeSinceBorn * 2.0f);
@@ -469,7 +477,7 @@ public class Tank extends GameObject {
 		Draw.drawRectShadow(g, transformBody, BODY_HALFSIZE, calcDrawScale(), colorShadow, TANK_ROUNDED_SIZE, Vec2.zero());
 	}
 
-	public void draw(Graphics2D g) {
+	protected void draw(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
 		Color colorBodyFill = Util.colorLerp(World.COLOR_BACKGROUND, playerIdx == 0 ? TANK_COLOR_BODY_FILL_1 : TANK_COLOR_BODY_FILL_2, timeSinceBorn * 2.0f);

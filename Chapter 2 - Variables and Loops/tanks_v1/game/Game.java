@@ -1,3 +1,5 @@
+package game;
+
 import java.util.ArrayList;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -7,7 +9,6 @@ import javax.swing.Timer;
 public class Game implements ActionListener {
     // Constants...
     public static final int STARTING_LEVEL_TIME     = 90;
-    public static final int UPDATE_TIMER_PERIOD     = 16;  // In milliseconds
 
     public static final int POINTS_CMD              = -1;
     public static final int POINTS_CMD_SHOT         = -2;
@@ -17,11 +18,12 @@ public class Game implements ActionListener {
     public static final int POINTS_POWERUP_RANGE    = 25;   // Percentile increase
     public static final int POINTS_POWERUP_SPEED    = 20;   // Percentile increase
 
+    private static final int UPDATE_TIMER_PERIOD  = 16;  // In milliseconds
     private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.5);
     private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, (double)World.FIELD_BORDER_TOP * 0.4);
 
     // Nested classes...
-    public class GameStats {
+    protected class GameStats {
         public int playerCount = 1;
         public double timeRemaining = STARTING_LEVEL_TIME;
 	    public int levelScore = 0;
@@ -37,25 +39,28 @@ public class Game implements ActionListener {
 
 	// Singleton...
 	private static Game instance = null;
-	public static synchronized Game get()
+	protected static synchronized Game get()
     {
         if (instance == null)
             instance = new Game();
   
         return instance;
     }
+    public static boolean Create() {
+        return Game.get().create();
+    }
 
     // Accessors...
-    public int getPlayerCount() {
+    protected int getPlayerCount() {
         return gameStats.playerCount;
     }
-    public double getLevelTimeRemaining() {
+    protected double getLevelTimeRemaining() {
         return gameStats.timeRemaining;
     }
-    public int getLevelTimeMax() {
+    protected int getLevelTimeMax() {
         return STARTING_LEVEL_TIME;
     }
-    public int getPlayerScore(int playerIdx) {
+    protected int getPlayerScore(int playerIdx) {
         if (playerIdx == 0) {
             return gameStats.levelScore;
         }
@@ -71,7 +76,7 @@ public class Game implements ActionListener {
     private Timer updateTimer;
 
     // Member functions (methods)...
-    public boolean create() {
+    protected boolean create() {
         // Create the world...
         if (!Window.create()) {
             return false;
@@ -87,10 +92,10 @@ public class Game implements ActionListener {
         return true;
     }
 
-    public Tank getTank() {
+    protected Tank getTank() {
         return getTank(0);
     }
-    public Tank getTank(int playerIdx) {
+    protected Tank getTank(int playerIdx) {
         ArrayList<GameObject> gameObjects = Simulation.getGameObjects();
         for (int i = 0; i < gameObjects.size(); ++i) {
             GameObject gameObject = gameObjects.get(i);
@@ -104,15 +109,15 @@ public class Game implements ActionListener {
         return null;
     }
 
-	public void awardPoints(int points, int playerIdx) {
+	protected void awardPoints(int points, int playerIdx) {
 		gameStats.levelScore += (playerIdx == 0) ? points : 0;
 		gameStats.levelScore2 += (playerIdx == 1) ? points : 0;
 	}
-    public void awardPoints(int points) {
+    protected void awardPoints(int points) {
         awardPoints(points, 0);
     }
 
-    public Vec2 pickSpawnLocation(double minDstFromTanks, double minDstFromTargets, double minDstFromPowerUps, double minDstFromSides, boolean clampToCenters, boolean favorMidX) {
+    protected Vec2 pickSpawnLocation(double minDstFromTanks, double minDstFromTargets, double minDstFromPowerUps, double minDstFromSides, boolean clampToCenters, boolean favorMidX) {
 		// Loop over some number of attempts...
 		int maxAttempts = 20;
 		Vec2 pos = new Vec2(Util.randRange(0, Util.toCoordFrameLength(World.get().getCanvasSize().x)), Util.randRange(0, Util.toCoordFrameLength(World.get().getCanvasSize().y)));
@@ -157,7 +162,7 @@ public class Game implements ActionListener {
 		return pos;
 	}    
 
-    public void onLevelSetup() {
+    protected void onLevelSetup() {
 		// Default time for level...
 		gameStats.reset();
 		
@@ -226,7 +231,7 @@ public class Game implements ActionListener {
         Game.get().update();
     } 
 
-    public void update() {
+    protected void update() {
         // Step the sim...
         long milliSecondsNow = System.currentTimeMillis();
         double deltaTime = (double)(milliSecondsNow - milliSecondsLastUpdate) / 1000;
@@ -251,7 +256,7 @@ public class Game implements ActionListener {
         gameStats.timeRemaining = Math.max(gameStats.timeRemaining - deltaTime, 0);
     }
 
-    public void Draw(Graphics2D g) {
+    protected void Draw(Graphics2D g) {
         // Time remaining...
         Vec2 levelTimePos = Util.toCoordFrame(new Vec2((Window.get().getWidth() - World.FIELD_BORDER * 2) / 2, World.FIELD_BORDER_TOP / 2 + 5));
         Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));

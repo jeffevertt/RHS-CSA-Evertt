@@ -1,3 +1,5 @@
+package game;
+
 import java.awt.Graphics2D;
 
 public class GameObject {
@@ -8,17 +10,17 @@ public class GameObject {
 
     // Accessors...
     public Vec2 getPos() {
-        return this.pos;
+        return Vec2.copy(this.pos);
     }
 
 	// Member functions (methods)...
-    public GameObject() {
+    protected GameObject() {
     }
 
-    public void destroy() {
+    protected void destroy() {
     }
 
-    public boolean shouldBeCulled() {
+    protected boolean shouldBeCulled() {
         return false;
     }
 
@@ -26,21 +28,21 @@ public class GameObject {
 		return (this.timeTillDeath > 0);
 	}    
 
-    public void update(double deltaTime) {
+    protected void update(double deltaTime) {
         timeSinceBorn += deltaTime;
     }
 
-    public double calcDrawScale() {
+    protected double calcDrawScale() {
 		return Math.max(1.0 - this.timeTillDeath, 0.001);
 	}
 
-	public double calcDrawHeight(double height, double scale) {
+	protected double calcDrawHeight(double height, double scale) {
 		return height * Math.min(timeSinceBorn * 2, 1) * scale;
 	}
 
-    public void drawShadow(Graphics2D g) {
+    protected void drawShadow(Graphics2D g) {
     }
 
-    public void draw(Graphics2D g) {
+    protected void draw(Graphics2D g) {
     }
 }

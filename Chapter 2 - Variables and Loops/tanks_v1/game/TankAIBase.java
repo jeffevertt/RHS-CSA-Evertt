@@ -1,3 +1,5 @@
+package game;
+
 import java.util.ArrayList;
 
 public abstract class TankAIBase {
@@ -11,7 +13,7 @@ public abstract class TankAIBase {
 	public Tank getTank() {
         return tank;
     }
-    public void setTank(Tank tank) {
+    protected void setTank(Tank tank) {
         this.tank = tank;
     }
 
@@ -45,19 +47,19 @@ public abstract class TankAIBase {
     }
 
 	// Member functions (methods)
-    public TankAIBase() {
+    protected TankAIBase() {
     }
 
     // This function should be overidden by the derived AI classes.
     //  The purpose of the function is to queue commands for the tank.
-    public boolean updateAI() {
+    protected boolean updateAI() {
         return false;
     }
 
     // Queue a command to be executed by the tank...updateCommands should call this.
     //  Note that you can queue multiple commands, but updateCommands will not be called 
     //  again until all queued commands have completed.
-    protected boolean queueCommand(String cmdStr, Vec2 param) {
+    public boolean queueCommand(String cmdStr, Vec2 param) {
         return tank.queueCommand(cmdStr, param);
     }
 }
