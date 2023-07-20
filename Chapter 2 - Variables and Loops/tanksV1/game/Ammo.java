@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 
@@ -5,6 +6,10 @@ public class Ammo extends GameObject {
     // Constants...
     public final int AMMO_SPEED = 8;
     public final double AMMO_RADIUS = 0.15;
+	public static final double AMMO_HEIGHT = 1.25;
+	private static final double AMMO_STROKE_WIDTH = 0.05;
+	private static final Color AMMO_COLOR_FILL = Color.PINK;
+	private static final Color AMMO_COLOR_STROKE = Color.BLACK;
 
     // Member variables...
     private int playerIdx = -1;
@@ -31,27 +36,18 @@ public class Ammo extends GameObject {
 		this.vel = Vec2.multiply(dir.unit(), AMMO_SPEED);
 		this.radius = AMMO_RADIUS;
 		this.timeTillDeath = 0;
-
-		// Graphics...
-		// this.raphaelObject = raphael.circle(toPixelsX(this.pos.x), toPixelsY(this.pos.y), this.radius * pixelsPerUnit);
-        // this.raphaelObject.attr({stroke: 'black', 'stroke-width': 2, fill: "darkred"});
     }
 
 	public void destroy() {
-		// if (this.raphaelObject != null) {
-		// 	this.raphaelObject.remove();
-		// 	this.raphaelObject = null;
-		// }
-
 		// Super...
 		super.destroy();
 	}
 	
 	public boolean shouldBeCulled() {
 		// Check if on field...
-		// if (!inRect(field, this.raphaelObject)) {
-		// 	return true;
-		// }
+		if (!Util.isInsideField(this.pos)) {
+		 	return true;
+		}
 		
 		// Check death timer...
 		if (this.timeTillDeath >= 1) {
@@ -72,14 +68,12 @@ public class Ammo extends GameObject {
 			
 			// Scale it down...
 			this.radius = AMMO_RADIUS * Math.max(1.0 - this.timeTillDeath, 0.001);
-			//this.raphaelObject.attr("r", this.radius * pixelsPerUnit);
 		}
 		else {
 			// Update position...
 			Vec2 prevPos = this.pos;
 			this.pos = Vec2.add(this.pos, Vec2.multiply(this.vel, deltaTime));
 			Vec2 motionVec = Vec2.subtract(this.pos, prevPos);
-			//this.raphaelObject.attr({cx: toPixelsX(this.pos.x), cy: toPixelsY(this.pos.y)});
 
 			// Check for hitting things (do swept collision to avoid missing it)...
 			ArrayList<GameObject> gameObjects = Simulation.getGameObjects();
@@ -124,9 +118,27 @@ public class Ammo extends GameObject {
 		}
 	}
 
+    public double calcDrawScale() {
+		return Math.max(1.0 - this.timeTillDeath, 0.001) * Math.min(timeSinceBorn * 5, 1);
+	}	
+
 	public void drawShadow(Graphics2D g) {
+		// Setup...
+		double scale = calcDrawScale();
+		Color colorShadow = Util.colorLerp(World.COLOR_BACKGROUND, World.COLOR_SHADOW, timeSinceBorn * 2.0f);
+
+		// Body...
+		Draw.drawRectShadow(g, this.pos, calcDrawHeight(AMMO_HEIGHT, scale), new Vec2(AMMO_RADIUS, AMMO_RADIUS), scale, colorShadow, AMMO_RADIUS);
     }
 
     public void draw(Graphics2D g) {
+		// Setup...
+		double scale = calcDrawScale();
+		double height = AMMO_HEIGHT;
+		Color colorFill = Util.colorLerp(World.COLOR_BACKGROUND, AMMO_COLOR_FILL, timeSinceBorn * 5.0f);
+		Color colorStroke = Util.colorLerp(World.COLOR_BACKGROUND, AMMO_COLOR_STROKE, timeSinceBorn * 5.0f);
+
+		// Body...
+		Draw.drawRect(g, this.pos, height, new Vec2(AMMO_RADIUS, AMMO_RADIUS), scale, colorFill, colorStroke, AMMO_STROKE_WIDTH, AMMO_RADIUS);
     }
 }

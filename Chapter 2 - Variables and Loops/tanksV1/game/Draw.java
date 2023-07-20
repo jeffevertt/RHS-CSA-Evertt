@@ -102,7 +102,7 @@ public class Draw {
             g.drawRoundRect((int)(geoOffsetPixels.x-halfDimsPixels.x), (int)(geoOffsetPixels.y-halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), roundedPixels, roundedPixels);
         }
     }
-    public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, FontSize fontSize, double height, Color color) {
+    public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, double height, FontSize fontSize, Color color) {
         drawTextCentered(g, text, pos, height, fontSize, color, null);
     }
     public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, double height, FontSize fontSize, Color color, Color dropShadowColor) {

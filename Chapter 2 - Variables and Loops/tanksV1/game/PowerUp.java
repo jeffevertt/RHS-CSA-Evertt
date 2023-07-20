@@ -75,27 +75,19 @@ public class PowerUp extends GameObject {
 		}
 	}
 
-	private double calcDrawScale() {
-		return Math.max(1.0 - this.timeTillDeath, 0.001);
-	}
-
-	private double calcDrawHeight(double scale) {
-		return POWERUP_HEIGHT * Math.min(timeSinceBorn * 2, 1) * scale;
-	}
-
 	public void drawShadow(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
 		Color colorShadow = Util.colorLerp(World.COLOR_BACKGROUND, World.COLOR_SHADOW, timeSinceBorn * 2.0f);
 
 		// Body...
-		Draw.drawRectShadow(g, this.pos, calcDrawHeight(scale), POWERUP_HALFDIMS, scale, colorShadow, POWERUP_ROUNDED_SIZE);
+		Draw.drawRectShadow(g, this.pos, calcDrawHeight(POWERUP_HEIGHT, scale), POWERUP_HALFDIMS, scale, colorShadow, POWERUP_ROUNDED_SIZE);
 	}
 
 	public void draw(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
-		double height = calcDrawHeight(scale);
+		double height = calcDrawHeight(POWERUP_HEIGHT, scale);
 		Color colorFill = Util.colorLerp(World.COLOR_BACKGROUND, POWERUP_COLOR_FILL, timeSinceBorn * 2.0f);
 		Color colorStroke = Util.colorLerp(World.COLOR_BACKGROUND, POWERUP_COLOR_STROKE, timeSinceBorn * 2.0f);
 		Color colorText = Util.colorLerp(World.COLOR_BACKGROUND, POWERUP_COLOR_TEXT, timeSinceBorn * 2.0f);

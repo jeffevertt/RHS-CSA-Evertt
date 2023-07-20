@@ -1,8 +1,14 @@
+import java.awt.Color;
 import java.awt.Graphics2D;
 
 public class Target extends GameObject {
 	// Constants...
 	public final double TARGET_RADIUS = 0.4;
+	public static final double TARGET_HEIGHT = 0.5;
+	private static final double TARGET_STROKE_WIDTH = 0.075;
+	private static final Color TARGET_COLOR_FILL_RED = Color.RED;
+	private static final Color TARGET_COLOR_FILL_WHITE = Color.WHITE;
+	private static final Color TARGET_COLOR_STROKE = Color.BLACK;
 
 	// Member variables...
 	private double radius = TARGET_RADIUS;
@@ -21,27 +27,9 @@ public class Target extends GameObject {
         this.pos = pos;
 		this.radius = TARGET_RADIUS;
 		this.timeTillDeath = 0;
-		// this.raphaelObjects = [];
-		// this.raphaelObjects.push(raphael.circle(toPixelsX(this.pos.x), toPixelsY(this.pos.y), this.radius * pixelsPerUnit).attr({'stroke-width': 2, fill: "red"}));
-		// this.raphaelObjects.push(raphael.circle(toPixelsX(this.pos.x), toPixelsY(this.pos.y), this.radius * 0.666 * pixelsPerUnit).attr({'stroke-width': 0, fill: "white"}));
-		// this.raphaelObjects.push(raphael.circle(toPixelsX(this.pos.x), toPixelsY(this.pos.y), this.radius * 0.333 * pixelsPerUnit).attr({'stroke-width': 0, fill: "red"}));
-		
-		// Set draw order...
-		// for (let i = this.raphaelObjects.length - 1; i >= 0; --i) {
-		// 	this.raphaelObjects[i].insertAfter(field);
-		// }
     }
 
 	public void destroy() {
-		// Graphics objects...
-		// for (let i = 0; i < this.raphaelObjects.length; ++i) {
-		// 	if (this.raphaelObjects[i] != null) {
-		// 		this.raphaelObjects[i].remove();
-		// 		this.raphaelObjects[i] = null;
-		// 	}
-		// }
-		// this.raphaelObjects = [];
-
 		// Super...
 		super.destroy();		
 	}
@@ -75,9 +63,31 @@ public class Target extends GameObject {
 		}
 	}
 
+    public double calcDrawScale(int ringIdx) {
+		double startUpRingFactor = (ringIdx == 0) ? 2 : ((ringIdx == 1) ? 1.5 : 1);
+		double startupScalar = Math.min(timeSinceBorn * startUpRingFactor, 1);
+		return startupScalar * super.calcDrawScale();
+	}	
+
     public void drawShadow(Graphics2D g) {
+		// Setup...
+		double scale = calcDrawScale(0);
+		Color colorShadow = Util.colorLerp(World.COLOR_BACKGROUND, World.COLOR_SHADOW, timeSinceBorn * 2.0f);
+
+		// Body...
+		Draw.drawRectShadow(g, this.pos, calcDrawHeight(TARGET_HEIGHT, scale), new Vec2(TARGET_RADIUS, TARGET_RADIUS), scale, colorShadow, TARGET_RADIUS * 2);
     }
 
     public void draw(Graphics2D g) {
-    }	
+		// Setup...
+		double height = calcDrawHeight(TARGET_HEIGHT, calcDrawScale());
+		Color colorFillRed = Util.colorLerp(World.COLOR_BACKGROUND, TARGET_COLOR_FILL_RED, timeSinceBorn * 2.0f);
+		Color colorFillWhite = Util.colorLerp(World.COLOR_BACKGROUND, TARGET_COLOR_FILL_WHITE, timeSinceBorn * 2.0f);
+		Color colorStroke = Util.colorLerp(World.COLOR_BACKGROUND, TARGET_COLOR_STROKE, timeSinceBorn * 2.0f);
+
+		// Body...
+		Draw.drawRect(g, this.pos, height, new Vec2(TARGET_RADIUS, TARGET_RADIUS), calcDrawScale(0), colorFillRed, colorStroke, TARGET_STROKE_WIDTH, TARGET_RADIUS * 2);
+		Draw.drawRect(g, this.pos, height, (new Vec2(TARGET_RADIUS, TARGET_RADIUS)).multiply(0.66), calcDrawScale(1), colorFillWhite, colorStroke, 0, TARGET_RADIUS * 2);
+		Draw.drawRect(g, this.pos, height, (new Vec2(TARGET_RADIUS, TARGET_RADIUS)).multiply(0.33), calcDrawScale(2), colorFillRed, colorStroke, 0, TARGET_RADIUS * 2);
+    }
 }

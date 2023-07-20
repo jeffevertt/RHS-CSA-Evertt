@@ -1,4 +1,4 @@
-public class TankAI {
+public class TankAI extends TankAIBase {
     public TankAI() {
     }
     

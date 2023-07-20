@@ -1,11 +1,15 @@
 import java.util.ArrayList;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.event.*;
 import javax.swing.Timer;
 
 public class Game implements ActionListener {
     // Constants...
-    private final int STARTING_LEVEL_TIME = 90;
-    private final int UPDATE_TIMER_PERIOD = 16;  // In milliseconds
+    public final int STARTING_LEVEL_TIME = 90;
+    public final int UPDATE_TIMER_PERIOD = 16;  // In milliseconds
+    public final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.5);
+    public final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(100, (double)World.FIELD_BORDER_TOP * 0.4);
 
     // Nested classes...
     public class GameStats {
@@ -86,20 +90,10 @@ public class Game implements ActionListener {
 	public void awardPoints(int points, int playerIdx) {
 		gameStats.levelScore += (playerIdx == 0) ? points : 0;
 		gameStats.levelScore2 += (playerIdx == 1) ? points : 0;
-		updateTimerAndScoreText();
 	}
     public void awardPoints(int points) {
         awardPoints(points, 0);
     }
-    public void updateTimerAndScoreText() {
-		// textTimer.attr({ "text": "Time: " + Math.ceil(levelTime) });
-		// textTimer.toFront();
-		// textTimer.attr({ x: canvasSize.w - textTimer.getBBox().width - 10, y:16 });
-		
-		// textScore.attr({ "text": "Score: " + levelScore + ((currentLevel == 4) ? " v " + levelScore2 : "") });
-		// textScore.toFront();
-		// textScore.attr({ x: canvasSize.w - textScore.getBBox().width - 10, y:38 });
-	}    
 
     public Vec2 pickSpawnLocation(double minDstFromTanks, double minDstFromTargets, double minDstFromPowerUps, double minDstFromSides, boolean clampToCenters, boolean favorMidX) {
 		// Loop over some number of attempts...
@@ -159,17 +153,12 @@ public class Game implements ActionListener {
 
         // Do an initial update...
         onLevelUpdate(0, true);
-
-        // Text...
-		//textLevel.attr({ "text":"level " + currentLevel + " (" + calcLevelDesc(currentLevel) + ")" });
-		//textLevel.toFront();
-		//updateTimerAndScoreText();        
     }
     private void onLevelUpdate(double deltaTime, boolean firstUpdate) {
 		// Level specific objects...
         boolean spawnPowerUp = true;
         boolean powerUpsOnlyPoints = false;
-		boolean spawnTarget = false;
+		boolean spawnTarget = true;
         boolean spawnInCenterOfField = false;
 		
 		// If no powerups, spawn one...
@@ -194,6 +183,7 @@ public class Game implements ActionListener {
     public void actionPerformed(ActionEvent evt) {
         Game.get().update();
     } 
+
     public void update() {
         // Step the sim...
         long milliSecondsNow = System.currentTimeMillis();
@@ -238,9 +228,34 @@ public class Game implements ActionListener {
         
         // Update levelTime...
         gameStats.timeRemaining = Math.max(gameStats.timeRemaining - deltaTime, 0);
-        updateTimerAndScoreText();
         
         // Update level logic...
         onLevelUpdate(deltaTime, false);
+    }
+
+    public void Draw(Graphics2D g) {
+        // Time remaining...
+        Vec2 levelTimePos = Util.toCoordFrame(new Vec2(Window.get().getWidth() / 2, World.FIELD_BORDER_TOP / 2 + 5));
+        Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));
+        String levelTimeText = Util.toIntStringFloor(gameStats.timeRemaining);
+        Color levelTimeColor = (gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130);
+        Color levelTimeBckGndColor = (gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235);
+        Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
+        Draw.drawRect(g, levelTimePos, 0, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075, 0.15);
+		Draw.drawTextCentered(g, levelTimeText, levelTimePos, 0, Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
+
+        // Player 1...
+        Vec2 player1HalfDims = new Vec2(Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
+        Vec2 player1Pos = Vec2.add(Util.toCoordFrame(new Vec2(World.FIELD_BORDER - 3, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(player1HalfDims.x, 0));
+        String player1Text = "Score: " + gameStats.levelScore;
+        Color player1Color = new Color(50, 180, 50);
+        Color player1BckGndColor = new Color(220, 245, 220);
+        Color player1Stroke = new Color(10, 70, 10);
+        Draw.drawRect(g, player1Pos, 0, player1HalfDims, 1.0, player1BckGndColor, player1Stroke, 0.05, 0.1);
+		Draw.drawTextCentered(g, player1Text, player1Pos, 0, Draw.FontSize.SMALL, player1Color, Color.BLACK);
+		
+		// textScore.attr({ "text": "Score: " + levelScore + ((currentLevel == 4) ? " v " + levelScore2 : "") });
+		// textScore.toFront();
+		// textScore.attr({ x: canvasSize.w - textScore.getBBox().width - 10, y:38 });
     }
 }

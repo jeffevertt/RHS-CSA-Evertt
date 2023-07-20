@@ -11,8 +11,8 @@ public class Tank extends GameObject {
 	public final static double TREAD_HALFWIDTH = 0.1;
 	public final static double TREAD_HALFLENGTH = 0.45;
 	public final static double TREAD_OFFSET = 0.35;
-	public final static double TURRET_INSET = 0.15;
-	public final static double TURRET_HALFLENGTH = 0.35;
+	public final static double TURRET_INSET = 0.225;
+	public final static double TURRET_HALFLENGTH = 0.375;
 	public final static double TURRET_HALFWIDTH = 0.1;
 
 	public static final double TANK_HEIGHT_BODY = 0.7;
@@ -364,14 +364,6 @@ public class Tank extends GameObject {
 		}
 	}
 
-	private double calcDrawScale() {
-		return Math.max(1.0 - this.timeTillDeath, 0.001);
-	}
-
-	private double calcDrawHeight(double height, double scale) {
-		return height * Math.min(timeSinceBorn * 2, 1) * scale;
-	}
-
 	private AffineTransform calcTransform(double height, double scale, boolean isShadow) {
 		// Calc the center position, using the height...
 		double drawHeight = calcDrawHeight(height, scale);
@@ -420,6 +412,6 @@ public class Tank extends GameObject {
 		Draw.drawRect(g, transformBody, BODY_HALFSIZE, calcDrawScale(), colorBodyFill, colorStroke, TANK_STROKE_WIDTH, 0, Vec2.zero());
 
 		// Turret...
-		Draw.drawRect(g, transformTurret, new Vec2(TURRET_HALFLENGTH, TURRET_HALFWIDTH), calcDrawScale(), colorTurretFill, colorStroke, TANK_TURRET_STROKE_WIDTH, TANK_ROUNDED_SIZE, new Vec2(-TURRET_INSET, 0));
+		Draw.drawRect(g, transformTurret, new Vec2(TURRET_HALFLENGTH, TURRET_HALFWIDTH), calcDrawScale(), colorTurretFill, colorStroke, TANK_TURRET_STROKE_WIDTH, TANK_ROUNDED_SIZE, new Vec2(TURRET_INSET, 0));
 	}
 }

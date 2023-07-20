@@ -44,6 +44,10 @@ public class Util {
     public static double randRange(double min, double max) {
         return min + Math.random() * (max - min);
     }
+    public static String toIntStringFloor(double value) {
+        int valueInt = (int)Math.floor(value);
+        return String.valueOf(valueInt);
+    }
 
     // Coordinate frame helpers...
     public static double toCoordFrameX(double posX) {

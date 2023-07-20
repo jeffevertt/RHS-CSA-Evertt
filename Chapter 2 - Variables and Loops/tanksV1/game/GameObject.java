@@ -30,6 +30,14 @@ public class GameObject {
         timeSinceBorn += deltaTime;
     }
 
+    public double calcDrawScale() {
+		return Math.max(1.0 - this.timeTillDeath, 0.001);
+	}
+
+	public double calcDrawHeight(double height, double scale) {
+		return height * Math.min(timeSinceBorn * 2, 1) * scale;
+	}
+
     public void drawShadow(Graphics2D g) {
     }
 

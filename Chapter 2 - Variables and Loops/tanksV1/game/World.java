@@ -170,9 +170,9 @@ public class World extends JPanel implements ActionListener {
                 }
             }
         }
-    }
-    public void paintComponent(Graphics g) {
-        //drawWorld((Graphics2D)g);
+
+        // Let the game do its drawing...
+        Game.get().Draw(g);
     }
     public void paint(Graphics g) {
         drawWorld((Graphics2D)g);
