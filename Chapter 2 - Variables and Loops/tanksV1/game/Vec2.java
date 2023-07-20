@@ -178,4 +178,8 @@ public class Vec2 {
 	public static Vec2 down() { 
 		return new Vec2(0,-1);
 	}
+
+	public String toString() {
+		return toStringWithSpaceDelimiter();
+	}
 }

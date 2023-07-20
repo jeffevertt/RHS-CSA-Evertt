@@ -8,7 +8,8 @@ public class Ammo extends GameObject {
     public final double AMMO_RADIUS = 0.15;
 	public static final double AMMO_HEIGHT = 1.25;
 	private static final double AMMO_STROKE_WIDTH = 0.05;
-	private static final Color AMMO_COLOR_FILL = Color.PINK;
+	private static final Color AMMO_COLOR_FILL_0 = new Color(30, 120, 30);
+	private static final Color AMMO_COLOR_FILL_1 = new Color(30, 30, 120);
 	private static final Color AMMO_COLOR_STROKE = Color.BLACK;
 
     // Member variables...
@@ -98,8 +99,8 @@ public class Ammo extends GameObject {
 					if ((this.playerIdx != tank.getPlayerIdx()) && // Don't let someone hit themselves
 					    (Util.intersectCircleCapsule(tank.pos, Tank.BODY_HALFSIZE.x, prevPos, motionVec, this.radius))) {
 						// Award points...
-						Game.get().awardPoints(25, this.playerIdx);
-						Util.log("(hit tank: score +25)");
+						Game.get().awardPoints(Game.POINTS_HIT_OTHER, this.playerIdx);
+						Util.log("(hit tank: score +" + Game.POINTS_HIT_OTHER + ")");
 						
 						// Kick the tank back (if you can)...
 						tank.kickBackTank(Vec2.subtract(tank.pos, this.pos).unit());
@@ -135,10 +136,11 @@ public class Ammo extends GameObject {
 		// Setup...
 		double scale = calcDrawScale();
 		double height = AMMO_HEIGHT;
-		Color colorFill = Util.colorLerp(World.COLOR_BACKGROUND, AMMO_COLOR_FILL, timeSinceBorn * 5.0f);
+		Color ammoColor = (this.playerIdx == 0) ? AMMO_COLOR_FILL_0 : AMMO_COLOR_FILL_1;
+		Color colorFill = Util.colorLerp(World.COLOR_BACKGROUND, ammoColor, timeSinceBorn * 5.0f);
 		Color colorStroke = Util.colorLerp(World.COLOR_BACKGROUND, AMMO_COLOR_STROKE, timeSinceBorn * 5.0f);
 
 		// Body...
-		Draw.drawRect(g, this.pos, height, new Vec2(AMMO_RADIUS, AMMO_RADIUS), scale, colorFill, colorStroke, AMMO_STROKE_WIDTH, AMMO_RADIUS);
+		Draw.drawRect(g, this.pos, height, new Vec2(AMMO_RADIUS, AMMO_RADIUS), scale, colorFill, colorStroke, AMMO_STROKE_WIDTH, AMMO_RADIUS * 2);
     }
 }

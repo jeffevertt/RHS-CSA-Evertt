@@ -34,33 +34,59 @@ public class Tank extends GameObject {
 	public final static double STARTING_TURN_SPEED = 90;	// degrees per second
 
 	// TankCmd (nested classes)...
-    class TankCmd {
+    public abstract class TankCmd {
 		public String type = "";
-		public Vec2 dir;
 		public double progress = 0;
 
 		public Vec2 startPos;
 		public Vec2 startDir;
 	}
-    class TankCmd_Move extends TankCmd {
+    public class TankCmd_Move extends TankCmd {
         static final String TYPE = "move";
+		public Vec2 moveVec;
         TankCmd_Move(Vec2 moveVec) {
             this.type = TankCmd_Move.TYPE;
-            this.dir = moveVec;
+            this.moveVec = moveVec;
         }
+		public String toString() {
+			return TYPE + ": moveVec=" + this.moveVec;
+		}
     }
-    class TankCmd_Turn extends TankCmd {
+    public class TankCmd_Turn extends TankCmd {
         static final String TYPE = "turn";
+		public Vec2 dir;
         TankCmd_Turn(Vec2 dir) {
             this.type = TankCmd_Turn.TYPE;
             this.dir = dir.unit();
         }
+		public String toString() {
+			return TYPE + ": dir=" + this.dir;
+		}
     }
-    class TankCmd_Shoot extends TankCmd {
+    public class TankCmd_Shoot extends TankCmd {
         static final String TYPE = "shoot";
+		public Vec2 dir;
         TankCmd_Shoot(Vec2 dir) {
             this.type = TankCmd_Shoot.TYPE;
             this.dir = dir.unit();
+        }
+		public String toString() {
+			return TYPE + ": dir=" + this.dir;
+		}
+    }
+
+	// Track stats for UI display...
+	public class UIStats {
+        public double timeSinceFeedbackCodeClean = 100000;
+	    public double timeSinceFeedbackCodeError = 100000;
+
+        public void reset() {
+            timeSinceFeedbackCodeClean = 100000;
+            timeSinceFeedbackCodeError = 100000;
+        }
+        public void update(double deltaTime) {
+			timeSinceFeedbackCodeClean += deltaTime;
+			timeSinceFeedbackCodeError += deltaTime;
         }
     }
 
@@ -71,6 +97,8 @@ public class Tank extends GameObject {
 	private double tankMoveSpeed = STARTING_MOVE_SPEED; // units per second
 	private double tankTurnSpeed = STARTING_TURN_SPEED; // degrees per second
 	private LocalTime timeLastShot = LocalTime.now();
+	private TankAIBase ai = null;
+	private UIStats uiStats = new UIStats();
 
 	private TankCmd activeCommand = null;
 	private ArrayList<TankCmd> queuedCommands = new ArrayList<TankCmd>();
@@ -91,6 +119,9 @@ public class Tank extends GameObject {
 	public Vec2 ammoSpawnLocation() {
 		return this.toWorld(new Vec2(TURRET_HALFLENGTH - TURRET_INSET, 0));
 	}
+	public UIStats getUIStats() {
+		return uiStats;
+	}
 	
 	// Member functions (methods)...
     public Tank(int playerIdx, Vec2 pos, Vec2 dir) {
@@ -101,12 +132,9 @@ public class Tank extends GameObject {
 		this.playerIdx = playerIdx;
         this.pos = pos;
         this.dir = dir;
-		this.ammoMaxRange = STARTING_AMMO_RANGE;
-		this.timeLastShot = LocalTime.now();
 
-		// Config...
-		this.tankMoveSpeed = STARTING_MOVE_SPEED;
-		this.tankTurnSpeed = STARTING_TURN_SPEED;
+		// Reset...
+		reset();
     }
 	
 	public void create() {
@@ -115,6 +143,21 @@ public class Tank extends GameObject {
 	public void destroy() {
 		// Super...
 		super.destroy();		
+	}
+
+	public void reset() {
+		// Stats...
+		uiStats.reset();
+
+		// AI...
+		this.ai = (playerIdx == 0) ? new TankAI() : new OtherAI();
+		this.ai.setTank(this);		
+
+		// Config...
+		this.tankMoveSpeed = STARTING_MOVE_SPEED;
+		this.tankTurnSpeed = STARTING_TURN_SPEED;
+		this.ammoMaxRange = STARTING_AMMO_RANGE;
+		this.timeLastShot = LocalTime.now();		
 	}
 	
 	public void kickBackTank(Vec2 dir) {
@@ -155,76 +198,95 @@ public class Tank extends GameObject {
 		// Give up the points...
 		switch (powerup.getType()) {
 			case "S" : // Speed
-				tankMoveSpeed *= 1.15;
-				tankTurnSpeed *= 1.15;
-				Util.log("(powerup: speed +15%)");
+				tankMoveSpeed *= 1 + ((double)Game.POINTS_POWERUP_SPEED / 100);
+				tankTurnSpeed *= 1 + ((double)Game.POINTS_POWERUP_SPEED / 100);
+				Util.log("(powerup: speed +" + Game.POINTS_POWERUP_SPEED + "%)");
 				break;
 			case "R" : // Shot range
-				ammoMaxRange *= 1.25;
-				Util.log("(powerup: range +25%)");
+				ammoMaxRange *= 1 + ((double)Game.POINTS_POWERUP_RANGE / 100);
+				Util.log("(powerup: range +" + Game.POINTS_POWERUP_RANGE + "%)");
 				break;
 			case "P" : // Points
-				Game.get().awardPoints(25, this.playerIdx);
-				Util.log("(powerup: score +25)");
+				Game.get().awardPoints(Game.POINTS_POWERUP_PTS, this.playerIdx);
+				Util.log("(powerup: score +" + Game.POINTS_POWERUP_PTS + ")");
 				break;
 			default :
 				throw new Error("Invalid powerup type: " + powerup.getType());
 		}
 	}
+
+	public boolean execPlayerAI() {
+		// Basic checks...
+		if (ai == null) {
+			return false;
+		}
+
+		// Call the AI (lets the AI queue up some commands for the tank)...
+		if (!ai.updateAI()) {
+			return false;
+		}
+
+		return true;
+	}
 	
-	public void execCommand(TankCmd command, boolean insertFront) {
-		// Queue it...
-		if (insertFront) {
-			this.queuedCommands.add(0, command);
+	public boolean queueCommand(String cmdStr, Vec2 param) {	
+		return queueCommand(cmdStr, param, false);
+	}
+	private boolean queueCommand(String cmdStr, Vec2 param, boolean insertFront) {
+		// Convert to TankCmd class type & validate...
+		TankCmd cmd = null;
+		if (cmdStr.toLowerCase().equals(TankCmd_Move.TYPE)) {
+			TankCmd_Move cmdMove = new TankCmd_Move(param);
+			if ((Math.abs(cmdMove.moveVec.x) > 0.000001) && (Math.abs(cmdMove.moveVec.y) > 0.000001)) {
+				Util.log("INVALID MOVE: Tanks move only horizontally & vertically");
+			}
+			else if (Vec2.lengthSqr(cmdMove.moveVec) < 0.001) {
+				Util.log("INVALID MOVE: Zero distance");
+			}
+			else {
+				cmd = cmdMove;
+			}
+		}
+		else if (cmdStr.toLowerCase().equals(TankCmd_Turn.TYPE)) {
+			TankCmd_Turn cmdTurn = new TankCmd_Turn(param);
+			if (Vec2.lengthSqr(cmdTurn.dir) < 0.001) {
+				Util.log("INVALID TURN: Zero direction vector");
+			}
+			else {
+				cmd = cmdTurn;
+			}
+		}
+		else if (cmdStr.toLowerCase().equals(TankCmd_Shoot.TYPE)) {
+			TankCmd_Shoot cmdShoot = new TankCmd_Shoot(param);
+			if (Vec2.lengthSqr(cmdShoot.dir) < 0.001) {
+				Util.log("INVALID SHOT: Zero direction vector");
+			}
+			else {
+				cmd = cmdShoot;
+			}
 		}
 		else {
-			this.queuedCommands.add(command);
+			// Unknown command...
+			Util.log("INVALID COMMAND: " + cmdStr);
+			cmd = null;
 		}
-	}
-	public void execCommand(TankCmd command) {	
-		execCommand(command, false);
-	}
 
-	public void execCodeRequestedTankCommands(Tank tank) {
-		if (queuedCommands == null) {
-			return;
+		// Check for invalid...
+		if (cmd == null) {
+			Game.get().awardPoints(Game.POINTS_CMD, this.playerIdx);
+			uiStats.timeSinceFeedbackCodeError = 0;
+			return false;
 		}
-		for (int i = 0; i < queuedCommands.size(); ++i) {
-			TankCmd tankCmd = queuedCommands.get(i);
-			boolean skipThisCmd = false;
-			switch (tankCmd.type) {
-				case TankCmd_Move.TYPE :
-					if ((Math.abs(tankCmd.dir.x) > 0.000001) && (Math.abs(tankCmd.dir.y) > 0.000001)) {
-						Util.log("INVALID MOVE: Tanks move only horizontally & vertically");
-						throw new Error("INVALID MOVE: Tanks move only horizontally & vertically");
-					}
-					if (Vec2.lengthSqr(tankCmd.dir) < 0.001) {
-						Util.log("INVALID MOVE: Zero distance");
-						//throw new Error('INVALID MOVE: Zero distance');
-						//return;
-						skipThisCmd = true;
-					}
-					break;
-				case TankCmd_Turn.TYPE : 
-					tankCmd = new TankCmd_Turn(tankCmd.dir);
-					break;
-				case TankCmd_Shoot.TYPE : 
-					if (Vec2.lengthSqr(tankCmd.dir) < 0.001) {
-						Util.log("INVALID SHOT: Zero direction vector");
-						//throw new Error('INVALID SHOT: Zero direction vector');
-						//return;
-						skipThisCmd = true;
-					}
-					break;
-				default :
-					Util.log("INVALID COMMAND: " + tankCmd.type);
-					throw new Error("INVALID COMMAND: " + tankCmd.type);
-			}
-			if (!skipThisCmd) {
-				tank.execCommand(tankCmd);
-			}
+
+		// Queue it...
+		if (insertFront) {
+			this.queuedCommands.add(0, cmd);
 		}
-		queuedCommands.clear();
+		else {
+			this.queuedCommands.add(cmd);
+		}
+
+		return true;
 	}
 	
 	public void finishActiveCommand() {
@@ -239,9 +301,17 @@ public class Tank extends GameObject {
 		// If it's a move or shoot, might need to do a turn first...
 		boolean needToTurnFirst = false;
 		TankCmd nextCommand = this.queuedCommands.get(0);
-		if ((nextCommand.type.equals(TankCmd_Move.TYPE)) || (nextCommand.type.equals(TankCmd_Shoot.TYPE))) {
-			if (Vec2.dot(this.dir.unit(), nextCommand.dir.unit()) < 0.999) {
-				nextCommand = new TankCmd_Turn(nextCommand.dir.unit());
+		if (nextCommand instanceof TankCmd_Move) {
+			TankCmd_Move cmdMove = (TankCmd_Move)nextCommand;
+			if (Vec2.dot(this.dir.unit(), cmdMove.moveVec.unit()) < 0.999) {
+				nextCommand = new TankCmd_Turn(cmdMove.moveVec.unit());
+				needToTurnFirst = true;
+			}
+		}
+		else if (nextCommand instanceof TankCmd_Shoot) {
+			TankCmd_Shoot cmdShoot = (TankCmd_Shoot)nextCommand;
+			if (Vec2.dot(this.dir.unit(), cmdShoot.dir.unit()) < 0.999) {
+				nextCommand = new TankCmd_Turn(cmdShoot.dir.unit());
 				needToTurnFirst = true;
 			}
 		}
@@ -254,7 +324,8 @@ public class Tank extends GameObject {
 
 		// Log it for the user...
 		if (!needToTurnFirst) {
-			Util.log((needToTurnFirst ? "    " : "--> ") + this.activeCommand.type + ": dir=" + this.activeCommand.dir);
+			String strPrevix = (Game.get().getPlayerCount() == 1) ? " " : (playerIdx + "");
+			Util.log(strPrevix + (needToTurnFirst ? "  " : "> " + this.activeCommand));
 		}
 		
 		// Setup next new command (save off starting information)...
@@ -262,7 +333,7 @@ public class Tank extends GameObject {
 		this.activeCommand.startDir = this.dir;
 		
 		// Make it cost something...
-		int pointCost = (this.activeCommand.type.equals(TankCmd_Shoot.TYPE)) ? -2 : -1;
+		int pointCost = (this.activeCommand.type.equals(TankCmd_Shoot.TYPE)) ? Game.POINTS_CMD_SHOT : Game.POINTS_CMD;
 		Game.get().awardPoints(pointCost, this.playerIdx);
 	}
 	
@@ -279,57 +350,59 @@ public class Tank extends GameObject {
 		switch (this.activeCommand.type) {
 			case TankCmd_Move.TYPE : {
 				// Setup...
-				Vec2 moveVec = this.activeCommand.dir;
+				TankCmd_Move cmdMove = (TankCmd_Move)this.activeCommand;
+				Vec2 moveVec = cmdMove.moveVec;
 				double moveDst = moveVec.length();
 				double moveTravelTime = moveDst / this.tankMoveSpeed;
 				
 				// Update the active command...
-				this.activeCommand.progress = Math.min(this.activeCommand.progress + deltaTime / moveTravelTime, 1);
-				this.pos = Vec2.add(this.activeCommand.startPos, Vec2.multiply(moveVec, this.activeCommand.progress));
+				cmdMove.progress = Math.min(cmdMove.progress + deltaTime / moveTravelTime, 1);
+				this.pos = Vec2.add(cmdMove.startPos, Vec2.multiply(moveVec, cmdMove.progress));
 				
 				// Check for tank overlap...
 				Tank otherTank = Game.get().getTank(this.playerIdx == 0 ? 1 : 0);
 				if ((otherTank != null) && Util.circlesIntersect(this.pos, BODY_HALFSIZE.x, otherTank.pos, BODY_HALFSIZE.x)) {
 					Vec2 deltaVec = Vec2.subtract(this.pos, otherTank.pos).unit();
 					this.pos = Vec2.add(this.pos, Vec2.multiply(deltaVec, 0.1));
-					this.activeCommand.progress = 1;
+					cmdMove.progress = 1;
 				}
 				
 				// Keep in bounds...
 				if (this.pos.x <= BODY_HALFSIZE.x) {
 					this.pos = Vec2.add(this.pos, Vec2.multiply(Vec2.right(), 0.1));
-					this.activeCommand.progress = 1;
+					cmdMove.progress = 1;
 				}
 				if (this.pos.y <= BODY_HALFSIZE.y) {
 					this.pos = Vec2.add(this.pos, Vec2.multiply(Vec2.up(), 0.1));
-					this.activeCommand.progress = 1;
+					cmdMove.progress = 1;
 				}
 				if (this.pos.x >= Util.toCoordFrameLength(World.get().getCanvasSize().x) - BODY_HALFSIZE.x) {
 					this.pos = Vec2.add(this.pos, Vec2.multiply(Vec2.left(), 0.1));
-					this.activeCommand.progress = 1;
+					cmdMove.progress = 1;
 				}
 				if (this.pos.y >= Util.toCoordFrameLength(World.get().getCanvasSize().y) - BODY_HALFSIZE.y) {
 					this.pos = Vec2.add(this.pos, Vec2.multiply(Vec2.down(), 0.1));
-					this.activeCommand.progress = 1;
+					cmdMove.progress = 1;
 				}
 				
 				// And...check for done...
-				if (this.activeCommand.progress == 1) {
+				if (cmdMove.progress == 1) {
 					this.finishActiveCommand();
 				}
 			} break;
 			case TankCmd_Turn.TYPE : {
 				// Setup...
-				double trgAngle = this.activeCommand.dir.angle();
-				double angleDelta = Util.minAngleToAngleDelta(this.activeCommand.startDir.angle(), trgAngle);
+				TankCmd_Turn cmdTurn = (TankCmd_Turn)this.activeCommand;
+				double trgAngle = cmdTurn.dir.angle();
+				double angleDelta = Util.minAngleToAngleDelta(cmdTurn.startDir.angle(), trgAngle);
 				double moveTravelTime = Math.abs(angleDelta) / this.tankTurnSpeed;
 				
 				// Update the active command...
-				this.activeCommand.progress = Math.min(this.activeCommand.progress + deltaTime / moveTravelTime, 1);
-				this.dir = Vec2.rotate(this.activeCommand.startDir, angleDelta * this.activeCommand.progress).unit();
+				cmdTurn.progress = Math.min(cmdTurn.progress + deltaTime / moveTravelTime, 1);
+				this.dir = Vec2.rotate(cmdTurn.startDir, angleDelta * cmdTurn.progress).unit();
 				
 				// And...check for done...
-				if (this.activeCommand.progress == 1) {
+				if (cmdTurn.progress == 1) {
 					this.finishActiveCommand();
 				}				
 			} break;
@@ -362,6 +435,9 @@ public class Tank extends GameObject {
 		if (deltaTime != 0) {
 			this.updateCommand(deltaTime);
 		}
+
+        // Stats...
+        uiStats.update(deltaTime);
 	}
 
 	private AffineTransform calcTransform(double height, double scale, boolean isShadow) {
@@ -373,7 +449,7 @@ public class Tank extends GameObject {
 		// Transform from local to world (includes rotation about that center)...
 		AffineTransform transform = new AffineTransform();
 		transform.translate(drawPosPixels.x, drawPosPixels.y);
-		transform.rotate(Math.toRadians(this.dir.angle()));
+		transform.rotate(Math.toRadians(-this.dir.angle()));
 
 		return transform;
 	}

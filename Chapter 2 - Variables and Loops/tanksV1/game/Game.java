@@ -6,34 +6,32 @@ import javax.swing.Timer;
 
 public class Game implements ActionListener {
     // Constants...
-    public final int STARTING_LEVEL_TIME = 90;
-    public final int UPDATE_TIMER_PERIOD = 16;  // In milliseconds
-    public final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.5);
-    public final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(100, (double)World.FIELD_BORDER_TOP * 0.4);
+    public static final int STARTING_LEVEL_TIME     = 90;
+    public static final int UPDATE_TIMER_PERIOD     = 16;  // In milliseconds
+
+    public static final int POINTS_CMD              = -1;
+    public static final int POINTS_CMD_SHOT         = -2;
+    public static final int POINTS_HIT_OTHER        = 10;
+    public static final int POINTS_HIT_TARGET       = 25;
+    public static final int POINTS_POWERUP_PTS      = 25;
+    public static final int POINTS_POWERUP_RANGE    = 25;   // Percentile increase
+    public static final int POINTS_POWERUP_SPEED    = 20;   // Percentile increase
+
+    private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.5);
+    private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, (double)World.FIELD_BORDER_TOP * 0.4);
 
     // Nested classes...
     public class GameStats {
+        public int playerCount = 1;
         public double timeRemaining = STARTING_LEVEL_TIME;
 	    public int levelScore = 0;
         public int levelScore2 = 0;    // "Other" player score
 
         public void reset() {
+            playerCount = 1;
             timeRemaining = STARTING_LEVEL_TIME;
 	        levelScore = 0;
             levelScore2 = 0;
-        }
-    }
-    public class UIStats {
-        public double timeFeedbackCodeClean1 = 0;
-	    public double timeFeedbackCodeError1 = 0;
-	    public double timeFeedbackCodeClean2 = 0;
-	    public double timeFeedbackCodeError2 = 0;
-
-        public void reset() {
-            timeFeedbackCodeClean1 = 0;
-            timeFeedbackCodeError1 = 0;
-            timeFeedbackCodeClean2 = 0;
-            timeFeedbackCodeError2 = 0;
         }
     }
 
@@ -47,9 +45,28 @@ public class Game implements ActionListener {
         return instance;
     }
 
+    // Accessors...
+    public int getPlayerCount() {
+        return gameStats.playerCount;
+    }
+    public double getLevelTimeRemaining() {
+        return gameStats.timeRemaining;
+    }
+    public int getLevelTimeMax() {
+        return STARTING_LEVEL_TIME;
+    }
+    public int getPlayerScore(int playerIdx) {
+        if (playerIdx == 0) {
+            return gameStats.levelScore;
+        }
+        else if (playerIdx == 1) {
+            return gameStats.levelScore2;
+        }
+        return (int)-1;
+    }
+
     // Member variables...
     private GameStats gameStats = new GameStats();
-    private UIStats uiStats = new UIStats();
     private long milliSecondsLastUpdate = System.currentTimeMillis();
     private Timer updateTimer;
 
@@ -143,8 +160,7 @@ public class Game implements ActionListener {
     public void onLevelSetup() {
 		// Default time for level...
 		gameStats.reset();
-		uiStats.reset();
-
+		
         // Reset the simulation...
         Simulation.get().destroyAll();
 		
@@ -153,6 +169,14 @@ public class Game implements ActionListener {
 
         // Do an initial update...
         onLevelUpdate(0, true);
+
+        // Tanks...
+        for (int i = 0; i < 2; ++i) {
+            Tank tank = getTank(i);
+            if (tank != null) {
+                tank.reset();
+            }
+        }        
     }
     private void onLevelUpdate(double deltaTime, boolean firstUpdate) {
 		// Level specific objects...
@@ -179,6 +203,24 @@ public class Game implements ActionListener {
 			}
 		}
     }
+    private boolean updateTankAI(double deltaTime) {
+        for (int i = 0; i < getPlayerCount(); ++i) {
+            if (Simulation.get().isReadyToAskCodeForNextCommand(i) && (gameStats.timeRemaining > 0)) {
+                Tank tank = getTank(i);
+                if (tank != null) {
+                    boolean success = tank.execPlayerAI();
+                    if (success) { 
+                        tank.getUIStats().timeSinceFeedbackCodeClean = 0;
+                    } 
+                    else { 
+                        tank.getUIStats().timeSinceFeedbackCodeError = 0; 
+                    }
+                }
+            }
+        }
+        
+        return true;
+    }
 
     public void actionPerformed(ActionEvent evt) {
         Game.get().update();
@@ -195,67 +237,57 @@ public class Game implements ActionListener {
         
         // Sim manager...
         Simulation.get().update(deltaTime);
+
+        // Update level logic...
+        onLevelUpdate(deltaTime, false);
         
         // Code update...
-        //boolean hitError = false;
-        // if (simMan.isReadyToAskCodeForNextCommand(0) && (levelTime > 0)) {
-        //     hitError = !simMan.execCode(0, document.getElementById('textCode1').value);
-        //     if (!hitError) { timeFeedbackCodeClean1 = 1; } else { timeFeedbackCodeError1 = 1; }
-        // }
-        // if (!hitError && (simMan.isReadyToAskCodeForNextCommand(1) && (levelTime > 0) && (currentLevel == 4))) {
-        //     hitError = !simMan.execCode(1, document.getElementById('textCode2').value);
-        //     if (!hitError) { timeFeedbackCodeClean2 = 1; } else { timeFeedbackCodeError2 = 1; }
-        // }
-
-        // Code success / error feedback...
-        // if ((timeFeedbackCodeClean1 > 0) || (timeFeedbackCodeError1 > 0)) {
-        //     timeFeedbackCodeClean1 = (timeFeedbackCodeClean1 > 0) ? Math.max(timeFeedbackCodeClean1 - deltaTime * 3, 0) : 0;
-        //     timeFeedbackCodeError1 = (timeFeedbackCodeError1 > 0) ? Math.max(timeFeedbackCodeError1 - deltaTime * 3, 0) : 0;
-        //     let color0 = (timeFeedbackCodeClean1 > timeFeedbackCodeError1) ? 'rgb(190, 255, 190)' : 'rgb(255, 190, 190)';
-        //     let color = colorLerp(color0, 'rgb(255, 255, 255)', 1 - Math.max(timeFeedbackCodeClean1, timeFeedbackCodeError1));
-        //     document.getElementById('textCode1').style="background-color: " + rgbToHex(color.r, color.g, color.b) + "; width:100%; height:90%;";
-        // }
-        // if ((timeFeedbackCodeClean2 > 0) || (timeFeedbackCodeError2 > 0)) {
-        //     timeFeedbackCodeClean2 = (timeFeedbackCodeClean2 > 0) ? Math.max(timeFeedbackCodeClean2 - deltaTime * 3, 0) : 0;
-        //     timeFeedbackCodeError2 = (timeFeedbackCodeError2 > 0) ? Math.max(timeFeedbackCodeError2 - deltaTime * 3, 0) : 0;
-        //     let color0 = (timeFeedbackCodeClean2 > timeFeedbackCodeError2) ? 'rgb(190, 255, 190)' : 'rgb(255, 190, 190)';
-        //     let color = colorLerp(color0, 'rgb(255, 255, 255)', 1 - Math.max(timeFeedbackCodeClean2, timeFeedbackCodeError2));
-        //     document.getElementById('textCode2').style="background-color: " + rgbToHex(color.r, color.g, color.b) + "; width:100%; height:90%;";
-        // }
+        updateTankAI(deltaTime);
         
         // Cull anything we can...
         Simulation.get().cullNotInField();
         
         // Update levelTime...
         gameStats.timeRemaining = Math.max(gameStats.timeRemaining - deltaTime, 0);
-        
-        // Update level logic...
-        onLevelUpdate(deltaTime, false);
     }
 
     public void Draw(Graphics2D g) {
         // Time remaining...
-        Vec2 levelTimePos = Util.toCoordFrame(new Vec2(Window.get().getWidth() / 2, World.FIELD_BORDER_TOP / 2 + 5));
+        Vec2 levelTimePos = Util.toCoordFrame(new Vec2((Window.get().getWidth() - World.FIELD_BORDER * 2) / 2, World.FIELD_BORDER_TOP / 2 + 5));
         Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));
         String levelTimeText = Util.toIntStringFloor(gameStats.timeRemaining);
         Color levelTimeColor = (gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130);
         Color levelTimeBckGndColor = (gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235);
         Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
-        Draw.drawRect(g, levelTimePos, 0, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075, 0.15);
+        Draw.drawRect(g, levelTimePos, 0, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get().getPixelsPerUnit(), 0.15 * 42 / World.get().getPixelsPerUnit());
 		Draw.drawTextCentered(g, levelTimeText, levelTimePos, 0, Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
 
         // Player 1...
-        Vec2 player1HalfDims = new Vec2(Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
-        Vec2 player1Pos = Vec2.add(Util.toCoordFrame(new Vec2(World.FIELD_BORDER - 3, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(player1HalfDims.x, 0));
-        String player1Text = "Score: " + gameStats.levelScore;
-        Color player1Color = new Color(50, 180, 50);
-        Color player1BckGndColor = new Color(220, 245, 220);
-        Color player1Stroke = new Color(10, 70, 10);
-        Draw.drawRect(g, player1Pos, 0, player1HalfDims, 1.0, player1BckGndColor, player1Stroke, 0.05, 0.1);
-		Draw.drawTextCentered(g, player1Text, player1Pos, 0, Draw.FontSize.SMALL, player1Color, Color.BLACK);
+        Tank tank = getTank(0);
+        if (tank != null) {
+            Vec2 player1HalfDims = new Vec2(Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
+            Vec2 player1Pos = Vec2.add(Util.toCoordFrame(new Vec2(World.FIELD_BORDER - 3, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(player1HalfDims.x, 0));
+            String player1Text = "Score: " + gameStats.levelScore;
+            Color player1Color = new Color(50, 180, 50);
+            Color player1BckGndColor = Util.colorLerp(new Color(220, 245, 220), new Color(120, 165, 120), 1.0f - tank.getUIStats().timeSinceFeedbackCodeClean * 2);
+            player1BckGndColor = Util.colorLerp(player1BckGndColor, new Color(165, 100, 100), 1.0f - tank.getUIStats().timeSinceFeedbackCodeError * 0.5);
+            Color player1Stroke = new Color(10, 70, 10);
+            Draw.drawRect(g, player1Pos, 0, player1HalfDims, 1.0, player1BckGndColor, player1Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
+            Draw.drawTextCentered(g, player1Text, player1Pos, 0, Draw.FontSize.SMALL, player1Color, Color.BLACK);
+        }
 		
-		// textScore.attr({ "text": "Score: " + levelScore + ((currentLevel == 4) ? " v " + levelScore2 : "") });
-		// textScore.toFront();
-		// textScore.attr({ x: canvasSize.w - textScore.getBBox().width - 10, y:38 });
+        // Player 2...
+        tank = getTank(1);
+        if ((tank != null) && (gameStats.playerCount > 1)) {
+            Vec2 player2HalfDims = new Vec2(Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
+            Vec2 player2Pos = Vec2.subtract(Util.toCoordFrame(new Vec2(Window.get().getWidth() - World.FIELD_BORDER - 13, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(player2HalfDims.x, 0));
+            String player2Text = "Score: " + gameStats.levelScore2;
+            Color player2Color = new Color(50, 50, 180);
+            Color player2BckGndColor = Util.colorLerp(new Color(220, 220, 245), new Color(120, 120, 165), 1.0f - tank.getUIStats().timeSinceFeedbackCodeClean * 2);
+            player2BckGndColor = Util.colorLerp(player2BckGndColor, new Color(165, 100, 100), 1.0f - tank.getUIStats().timeSinceFeedbackCodeError * 0.5);
+            Color player2Stroke = new Color(10, 10, 70);
+            Draw.drawRect(g, player2Pos, 0, player2HalfDims, 1.0, player2BckGndColor, player2Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
+            Draw.drawTextCentered(g, player2Text, player2Pos, 0, Draw.FontSize.SMALL, player2Color, Color.BLACK);
+        }
     }
 }

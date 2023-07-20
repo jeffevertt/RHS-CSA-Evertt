@@ -39,8 +39,8 @@ public class Target extends GameObject {
 		this.timeTillDeath = Math.max(this.timeTillDeath, 0.0001);
 		
 		// Give up the points...
-		Game.get().awardPoints(20, playerIdx);
-		Util.log("(hit target: score +20)");
+		Game.get().awardPoints(Game.POINTS_HIT_TARGET, playerIdx);
+		Util.log("(hit target: score +" + Game.POINTS_HIT_TARGET + ")");
 	}
 	
 	public boolean shouldBeCulled() {

@@ -34,7 +34,7 @@ public class World extends JPanel implements ActionListener {
     public static final Color COLOR_GRID = new Color(193, 154, 127);
     public static final Color COLOR_SHADOW = new Color(110, 110, 110);
     public static final Color COLOR_SHADOW_TEXT = new Color(60, 60, 60);
-    public static final int RENDER_TIMER_PERIOD = 50;  // In milliseconds
+    public static final int RENDER_TIMER_PERIOD = 16;  // In milliseconds
 
     // Member variables...
     private Vec2 origin = new Vec2(0, 0);
@@ -118,6 +118,10 @@ public class World extends JPanel implements ActionListener {
         hints.put(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         hints.put(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
         g.addRenderingHints(hints);
+
+        // Ful window clear...
+        g.setColor(Color.LIGHT_GRAY);
+        g.fillRect(0, 0, getWidth(), getHeight());
 
         // Background...
         g.setColor(COLOR_BACKGROUND);

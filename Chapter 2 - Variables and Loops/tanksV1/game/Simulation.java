@@ -65,6 +65,17 @@ public class Simulation {
 		}
 		return count;
 	}
+
+	public ArrayList<GameObject> getObjectsOfType(Class<?> type) {
+		ArrayList<GameObject> gameObjects = new ArrayList<GameObject>();
+		for (int i = 0; i < this.gameObjects.size(); i++) { 
+            GameObject gameObject = this.gameObjects.get(i);
+            if (type.isInstance(gameObject)) {
+				gameObjects.add(gameObject);
+			}
+		}
+		return gameObjects;
+	}
 	
 	public void destroyAll() {
 		for (int i = 0; i < this.gameObjects.size(); i++) { 
@@ -102,25 +113,6 @@ public class Simulation {
 		}
 	}
 	
-	public boolean execPlayerAI(int playerIdx) {
-		// queuedCodeCommands = [];
-		// let theTank = null, otherTank = null;
-		// for (let i = 0; i < this.tanks.length; ++i) {
-		// 	theTank = (this.tanks[i].playerIdx == playerIdx) ? this.tanks[i] : theTank;
-		// 	otherTank = (this.tanks[i].playerIdx != playerIdx) ? this.tanks[i] : otherTank;
-		// }
-		// tank = (theTank != null) ? theTank.createCodeStruct() : null;
-		// other = (otherTank != null) ? otherTank.createCodeStruct() : null;
-		// target = (this.targets.length > 0) ? this.targets[0].createCodeStruct() : null;
-		// powerup = (this.powerups.length > 0) ? this.powerups[0].createCodeStruct() : null;
-		// if (!executeCode(code)) {
-		// 	return false;
-		// }
-		// this.execCodeRequestedTankCommands(theTank);
-
-		return true;
-	}
-	
 	public void cullNotInField() {
         // Check with all of them calling their "shouldBeCulled" function...
 		int i = 0;
@@ -138,12 +130,13 @@ public class Simulation {
 		for (int i = 0; i < this.gameObjects.size(); ++i) { 
             GameObject gameObject = this.gameObjects.get(i);
 
-            // Need to special case some things...
+            // Here are the set of things that can block checking for commands...
             if (gameObject instanceof Tank) {
                 Tank tank = (Tank)gameObject;
                 if (tank.getPlayerIdx() != playerIdx) {
                     continue;
                 }
+				// If the tank is doing something or has queued commands...
                 if (tank.hasCommand()) {
 			    	return false;
 			    }
@@ -153,9 +146,11 @@ public class Simulation {
                 if (ammo.getPlayerIdx() != playerIdx) {
                     continue;
                 }
-                return true;
+				// If the tank has an active shot in the air...
+                return false;
             }
             else if (gameObject.isDying()) {
+				// If any game object is dying, then wait till it is gone...
                 return false;
             }
 		}
