@@ -4,6 +4,9 @@ import game.TankAIBase;
 import game.Vec2;
 
 public class TankAI extends TankAIBase {
+    public String getPlayerName() {
+        return "<Your Name>";
+    }
         
     // You are free to add member variables and functions to this class.
     //  However, you can only call function in this classes base class (TankAIBase). 
@@ -15,8 +18,6 @@ public class TankAI extends TankAIBase {
         // Test...
         queueCommand("move", new Vec2(getPowerUp().getPos().x - tank.getPos().x, 0));
         queueCommand("move", new Vec2(0, getPowerUp().getPos().y - tank.getPos().y));
-        //queueCommand("move", new Vec2(2, 0));
-        //queueCommand("shoot", Vec2.subtract(getTarget().getPos(), Vec2.add(tank.getPos(), new Vec2(0,0))));
 
         return true;
     }

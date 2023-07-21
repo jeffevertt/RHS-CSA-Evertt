@@ -22,16 +22,16 @@ public class Tank extends GameObject {
 
 	protected static final double TANK_HEIGHT_BODY = 0.7;
 	protected static final double TANK_HEIGHT_TREADS = 0.2;
-	protected static final double TANK_HEIGHT_TURRET = 1.2;
-	private static final double TANK_STROKE_WIDTH = 0.05;
+	protected static final double TANK_HEIGHT_TURRET = 1.0;
+	private static final double TANK_STROKE_WIDTH = 0.025;
 	private static final double TANK_TURRET_STROKE_WIDTH = 0.035;
 	private static final double TANK_ROUNDED_SIZE = 0.1;
 
 	private static final Color TANK_COLOR_BODY_FILL_1 = Color.GREEN;
-	private static final Color TANK_COLOR_BODY_FILL_2 = Color.BLUE;
+	private static final Color TANK_COLOR_BODY_FILL_2 = new Color(100, 100, 250);
 	private static final Color TANK_COLOR_TREAD_FILL = Color.DARK_GRAY;
 	private static final Color TANK_COLOR_TURRET_FILL_1 = new Color(44, 120, 44);
-	private static final Color TANK_COLOR_TURRET_FILL_2 = new Color(44, 4, 120);
+	private static final Color TANK_COLOR_TURRET_FILL_2 = new Color(44, 44, 120);
 	private static final Color TANK_COLOR_STROKE = Color.BLACK;	
 
 	public final static double STARTING_AMMO_RANGE = 8;
@@ -111,6 +111,9 @@ public class Tank extends GameObject {
 	// Accessors...
 	protected int getPlayerIdx() {
 		return this.playerIdx;
+	}
+	protected String getPlayerName() {
+		return ai.getPlayerName();
 	}
 	protected Vec2 getDir() {
 		return Vec2.copy(this.dir);

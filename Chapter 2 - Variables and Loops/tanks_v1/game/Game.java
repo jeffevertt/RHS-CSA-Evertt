@@ -8,6 +8,7 @@ import javax.swing.Timer;
 
 public class Game implements ActionListener {
     // Constants...
+    public static final int PLAYER_COUNT            = 1;
     public static final int STARTING_LEVEL_TIME     = 90;
 
     public static final int POINTS_CMD              = -1;
@@ -20,17 +21,17 @@ public class Game implements ActionListener {
 
     private static final int UPDATE_TIMER_PERIOD  = 16;  // In milliseconds
     private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.5);
-    private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, (double)World.FIELD_BORDER_TOP * 0.4);
+    private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, (double)World.FIELD_BORDER_TOP * 0.55);
 
     // Nested classes...
     protected class GameStats {
-        public int playerCount = 1;
+        public int playerCount = PLAYER_COUNT;
         public double timeRemaining = STARTING_LEVEL_TIME;
 	    public int levelScore = 0;
         public int levelScore2 = 0;    // "Other" player score
 
         public void reset() {
-            playerCount = 1;
+            playerCount = PLAYER_COUNT;
             timeRemaining = STARTING_LEVEL_TIME;
 	        levelScore = 0;
             levelScore2 = 0;
@@ -171,6 +172,9 @@ public class Game implements ActionListener {
 		
 		// Level specific objects...
 		Simulation.get().createTank(0, new Vec2(1.5, 1.5), Vec2.right());
+        if (gameStats.playerCount > 1) {
+            Simulation.get().createTank(1, new Vec2(Util.maxHalfUnitsInField().x - 1, 1.5), Vec2.left());
+        }
 
         // Do an initial update...
         onLevelUpdate(0, true);
@@ -185,27 +189,28 @@ public class Game implements ActionListener {
     }
     private void onLevelUpdate(double deltaTime, boolean firstUpdate) {
 		// Level specific objects...
-        boolean spawnPowerUp = true;
-        boolean powerUpsOnlyPoints = false;
-		boolean spawnTarget = true;
-        boolean spawnInCenterOfField = false;
+        int spawnPowerUpCount = 3;
+        boolean powerUpsOnlyPointsAndSpeed = true;
+		int spawnTargetCount = 0;
+        boolean spawnInCenterOfField = (gameStats.playerCount > 1) && firstUpdate;
 		
 		// If no powerups, spawn one...
-		if (spawnPowerUp) {
-			if (Simulation.get().objectCount(PowerUp.class) == 0) {
-				Vec2 powerupLocation = pickSpawnLocation(6, 5, 5, 0.9, true, spawnInCenterOfField);
-				double powerupRand = Util.randRange(0, 1);
-				String powerupType = (powerUpsOnlyPoints || (powerupRand < 0.333)) ? "P" : ((powerupRand < 0.666) ? "R" : "S");
-				Simulation.get().createPowerUp(powerupLocation, powerupType);
-			}
+        int spawnCount = Math.max(spawnPowerUpCount - Simulation.get().objectCount(PowerUp.class), 0);
+		for (int i = 0; i < spawnCount; ++i) {
+            Vec2 powerupLocation = pickSpawnLocation(6, 5, 5, 0.9, true, spawnInCenterOfField);
+            double powerupRand = Util.randRange(0, 1);
+            String powerupType = ((powerupRand < 0.333) ? "P" : ((powerupRand < 0.666) ? "R" : "S"));
+            if (powerUpsOnlyPointsAndSpeed) {
+                powerupType = ((powerupRand < 0.5) ? "P" :"S");
+            }
+            Simulation.get().createPowerUp(powerupLocation, powerupType);
 		}
 
 		// If no targets, spawn one...
-		if (spawnTarget) {
-			if (Simulation.get().objectCount(Target.class) == 0) {
-				Vec2 targetLocation = pickSpawnLocation(6, 5, 5, 0.9, true, spawnInCenterOfField);
-				Simulation.get().createTarget(targetLocation);
-			}
+        spawnCount = Math.max(spawnTargetCount - Simulation.get().objectCount(Target.class), 0);
+		for (int i = 0; i < spawnCount; ++i) {
+            Vec2 targetLocation = pickSpawnLocation(6, 5, 5, 0.9, true, spawnInCenterOfField);
+            Simulation.get().createTarget(targetLocation);
 		}
     }
     private boolean updateTankAI(double deltaTime) {
@@ -278,7 +283,8 @@ public class Game implements ActionListener {
             player1BckGndColor = Util.colorLerp(player1BckGndColor, new Color(165, 100, 100), 1.0f - tank.getUIStats().timeSinceFeedbackCodeError * 0.5);
             Color player1Stroke = new Color(10, 70, 10);
             Draw.drawRect(g, player1Pos, 0, player1HalfDims, 1.0, player1BckGndColor, player1Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
-            Draw.drawTextCentered(g, player1Text, player1Pos, 0, Draw.FontSize.SMALL, player1Color, Color.BLACK);
+            Draw.drawTextCentered(g, tank.getPlayerName(), new Vec2(player1Pos.x, player1Pos.y + player1HalfDims.y * 0.55), 0, Draw.FontSize.XSMALL, player1Color, Color.BLACK);
+            Draw.drawTextCentered(g, player1Text, new Vec2(player1Pos.x, player1Pos.y - player1HalfDims.y * 0.35), 0, Draw.FontSize.SMALL, player1Color, Color.BLACK);
         }
 		
         // Player 2...
@@ -292,7 +298,8 @@ public class Game implements ActionListener {
             player2BckGndColor = Util.colorLerp(player2BckGndColor, new Color(165, 100, 100), 1.0f - tank.getUIStats().timeSinceFeedbackCodeError * 0.5);
             Color player2Stroke = new Color(10, 10, 70);
             Draw.drawRect(g, player2Pos, 0, player2HalfDims, 1.0, player2BckGndColor, player2Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
-            Draw.drawTextCentered(g, player2Text, player2Pos, 0, Draw.FontSize.SMALL, player2Color, Color.BLACK);
+            Draw.drawTextCentered(g, tank.getPlayerName(), new Vec2(player2Pos.x, player2Pos.y + player2HalfDims.y * 0.55), 0, Draw.FontSize.XSMALL, player2Color, Color.BLACK);
+            Draw.drawTextCentered(g, player2Text, new Vec2(player2Pos.x, player2Pos.y - player2HalfDims.y * 0.35), 0, Draw.FontSize.SMALL, player2Color, Color.BLACK);
         }
     }
 }

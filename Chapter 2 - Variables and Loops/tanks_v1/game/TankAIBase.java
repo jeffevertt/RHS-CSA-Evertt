@@ -16,6 +16,9 @@ public abstract class TankAIBase {
     protected void setTank(Tank tank) {
         this.tank = tank;
     }
+    public String getPlayerName() {
+        return "UNKNOWN";
+    }
 
     // Object query functions
     public PowerUp getPowerUp() {
