@@ -256,7 +256,18 @@ public class Tank extends GameObject {
 			return Vec2.multiply(cmdMove.moveVec.unit(), this.tankMoveSpeed);
 		}
 		return Vec2.zero();
-	}	
+	}
+
+	public double getAngVel() {
+		if ((this.activeCommand != null) && 
+			(this.activeCommand.type == TankCmd_Turn.TYPE)) {
+			TankCmd_Turn cmdTurn = (TankCmd_Turn)this.activeCommand;
+			double trgAngle = cmdTurn.dir.angle();
+			double angleDelta = Util.minAngleToAngleDelta(cmdTurn.startDir.angle(), trgAngle);
+			return this.tankTurnSpeed * ((angleDelta < 0) ? -1 : 1);
+		}
+		return 0;
+	}
 	
 	protected boolean queueCmd(String cmdStr, Vec2 param) {	
 		return queueCmd(cmdStr, param, false);
@@ -478,6 +489,20 @@ public class Tank extends GameObject {
 		return ((this.activeCommand != null) || (this.queuedCommands.size() > 0)) ? true : false;
 	}
 
+	protected void keepOnField() {
+		// If already in, then all good...
+		if (Util.isInsideField(this.pos, 0.1)) {
+			return;
+		}
+
+		// Cancel any active commands...
+		this.cancelAllCommands();
+
+		// Clamp it...
+		Vec2 maxCoordFrameUnits = Util.maxCoordFrameUnits();
+		this.pos.clamp(new Vec2(0.2, 0.2), Vec2.subtract(maxCoordFrameUnits, new Vec2(0.2, 0.2)));
+	}
+
     protected void update(double deltaTime) {
 		// Super...
 		super.update(deltaTime);
@@ -486,6 +511,9 @@ public class Tank extends GameObject {
 		if (deltaTime != 0) {
 			this.updateCommand(deltaTime);
 		}
+
+		// Keep us on the field...
+		keepOnField();
 
         // Stats...
         uiStats.update(deltaTime);

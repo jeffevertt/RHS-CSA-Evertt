@@ -8,7 +8,7 @@ public class Ammo extends GameObject {
     // Constants...
     public static final int AMMO_SPEED = 8;
     public static final double AMMO_RADIUS = 0.15;
-	private static final double AMMO_HEIGHT = 1.25;
+	private static final double AMMO_HEIGHT = 2.75;
 	private static final double AMMO_STROKE_WIDTH = 0.05;
 	private static final Color AMMO_COLOR_FILL_0 = new Color(30, 120, 30);
 	private static final Color AMMO_COLOR_FILL_1 = new Color(30, 30, 120);
@@ -132,7 +132,11 @@ public class Ammo extends GameObject {
 
     protected double calcDrawScale() {
 		return Math.max(1.0 - this.timeTillDeath, 0.001) * Math.min(timeSinceBorn * 5, 1);
-	}	
+	}
+
+	protected double calcDrawHeight(double height, double scale) {
+		return height * Math.min(timeSinceBorn * 5, 1) * scale * (1 - (Vec2.subtract(this.pos, this.startPos)).length() / this.maxRange);
+	}
 
 	protected void drawShadow(Graphics2D g) {
 		// Setup...
@@ -146,7 +150,7 @@ public class Ammo extends GameObject {
     protected void draw(Graphics2D g) {
 		// Setup...
 		double scale = calcDrawScale();
-		double height = AMMO_HEIGHT;
+		double height = calcDrawHeight(AMMO_HEIGHT, scale);
 		Color ammoColor = (this.playerIdx == 0) ? AMMO_COLOR_FILL_0 : AMMO_COLOR_FILL_1;
 		Color colorFill = Util.colorLerp(World.COLOR_BACKGROUND, ammoColor, timeSinceBorn * 5.0f);
 		Color colorStroke = Util.colorLerp(World.COLOR_BACKGROUND, AMMO_COLOR_STROKE, timeSinceBorn * 5.0f);

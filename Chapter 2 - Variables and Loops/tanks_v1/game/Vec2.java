@@ -101,15 +101,21 @@ public class Vec2 {
 	}
 
 	public Vec2 max(Vec2 other) {
-		return new Vec2(Math.max(this.x, other.x), Math.max(this.y, other.y));
+		this.x = Math.max(this.x, other.x);
+		this.y = Math.max(this.y, other.y);
+		return this;
 	}
 
 	public Vec2 min(Vec2 other) {
-		return new Vec2(Math.min(this.x, other.x), Math.min(this.y, other.y));
+		this.x = Math.min(this.x, other.x);
+		this.y = Math.min(this.y, other.y);
+		return this;
 	}
 
 	public Vec2 clamp(Vec2 min, Vec2 max) {
-		return new Vec2(Util.clamp(this.x, min.x, max.x), Util.clamp(this.y, min.y, max.y));
+		this.x = Util.clamp(this.x, min.x, max.x);
+		this.y = Util.clamp(this.y, min.y, max.y);
+		return this;
 	}
 
 	public String toStringWithCommaDelimiter() {

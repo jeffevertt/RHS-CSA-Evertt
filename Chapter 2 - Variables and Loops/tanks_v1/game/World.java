@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -17,7 +19,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-public class World extends JPanel implements ActionListener {
+public class World extends JPanel implements ActionListener, MouseListener {
     // Singleton...
 	private static World instance = null;
 	public static synchronized World get()
@@ -65,7 +67,9 @@ public class World extends JPanel implements ActionListener {
                 origin = new Vec2(FIELD_BORDER, getHeight() - FIELD_BORDER);
 
                 // Setup the level...
-                Game.get().onLevelSetup();
+                if (!Game.get().isGameActive()) {
+                    Game.get().onLevelSetup();
+                }
             }
         });
 
@@ -78,11 +82,35 @@ public class World extends JPanel implements ActionListener {
         }
         renderTimer = new Timer(RENDER_TIMER_PERIOD, this);
         renderTimer.start();
+
+        // Mouse listener...
+        this.addMouseListener(this);
     }
 
-    public void actionPerformed(ActionEvent evt) {
-        if (evt.getSource() == renderTimer) {
+    // Render timer...
+    public void actionPerformed(ActionEvent event) {
+        if (event.getSource() == renderTimer) {
             repaint();
+        }
+    }
+
+    // Mouse events...
+    public void mousePressed(MouseEvent event) {
+    }
+    public void mouseReleased(MouseEvent event) {
+    }
+    public void mouseEntered(MouseEvent event) {
+    }
+    public void mouseExited(MouseEvent event) {
+    }
+    public void mouseClicked(MouseEvent event) {
+        // Double click restarts it...
+        if (event.getClickCount() == 2 && !event.isConsumed()) {
+            Game.get().onLevelSetup();
+        }
+        else if ((event.getClickCount() == 1) && Game.get().isGameActive()) {
+            // Pause/unpause the game...
+            Game.get().setGamePause(!Game.get().isGamePaused());
         }
     }
     
@@ -119,7 +147,7 @@ public class World extends JPanel implements ActionListener {
         // Background...
         g.setColor(COLOR_BACKGROUND);
         g.fillRect(FIELD_BORDER, FIELD_BORDER_TOP, getWidth() - FIELD_BORDER * 2, getHeight() - FIELD_BORDER - FIELD_BORDER_TOP);
-        g.setColor(Color.DARK_GRAY);
+        g.setColor(!Game.get().isGamePaused() ? (Game.get().isGameActive() ? Color.DARK_GRAY : Color.LIGHT_GRAY) : Color.RED);
         g.setStroke(new BasicStroke(2));
         g.drawRect(FIELD_BORDER, FIELD_BORDER_TOP, getWidth() - FIELD_BORDER * 2, getHeight() - FIELD_BORDER - FIELD_BORDER_TOP);
 

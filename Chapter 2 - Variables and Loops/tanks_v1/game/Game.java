@@ -26,13 +26,15 @@ public class Game implements ActionListener {
 
     // Nested classes...
     protected class GameStats {
-        public int playerCount = 1;
-        public double timeRemaining = STARTING_LEVEL_TIME;
+        public int playerCount = 0;
+        public boolean isPaused = false;
+        public double timeRemaining = 0;
 	    public int levelScore = 0;
         public int levelScore2 = 0;    // "Other" player score
 
         public void reset() {
             playerCount = 1;
+            isPaused = false;
             timeRemaining = STARTING_LEVEL_TIME;
 	        levelScore = 0;
             levelScore2 = 0;
@@ -70,6 +72,12 @@ public class Game implements ActionListener {
             return gameStats.levelScore2;
         }
         return (int)-1;
+    }
+    public boolean isGameActive() {
+        return (this.gameStats.timeRemaining > 0);
+    }
+    public boolean isGamePaused() {
+        return this.gameStats.isPaused;
     }
 
     // Member variables...
@@ -117,6 +125,16 @@ public class Game implements ActionListener {
 	}
     protected void awardPoints(int points) {
         awardPoints(points, 0);
+    }
+
+    protected void setGamePause(boolean isPaused) {
+        // If the game is done, ignore this...
+        if (!isGameActive()) {
+            return;
+        }
+
+        // Set it...
+        gameStats.isPaused = isPaused;
     }
 
     protected Vec2 pickSpawnLocation(double minDstFromTanks, double minDstFromTargets, double minDstFromPowerUps, double minDstFromSides, boolean clampToCenters, boolean favorMidX) {
@@ -220,6 +238,12 @@ public class Game implements ActionListener {
 		}
     }
     private boolean updateTankAI(double deltaTime) {
+        // Don't call if we are paused...
+        if (isGamePaused()) {
+            return true;
+        }
+
+        // Loop over the players, updating each AI...
         for (int i = 0; i < getPlayerCount(); ++i) {
             if (Simulation.get().isReadyToAskCodeForNextCommand(i) && (gameStats.timeRemaining > 0)) {
                 Tank tank = getTank(i);
@@ -250,6 +274,11 @@ public class Game implements ActionListener {
         
         // Clamp deltaTime (slow down the sim, if needed)...
         deltaTime = Math.min(deltaTime, 0.1);
+
+        // Deal with pause...
+        if (isGamePaused()) {
+            deltaTime = 0.0;
+        }
         
         // Sim manager...
         Simulation.get().update(deltaTime);
@@ -277,12 +306,12 @@ public class Game implements ActionListener {
         // Time remaining...
         Vec2 levelTimePos = Util.toCoordFrame(new Vec2((Window.get().getWidth() - World.FIELD_BORDER * 2) / 2, World.FIELD_BORDER_TOP / 2 + 5));
         Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));
-        String levelTimeText = Util.toIntStringCeil(gameStats.timeRemaining);
-        Color levelTimeColor = (gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130);
-        Color levelTimeBckGndColor = (gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235);
+        String levelTimeText = isGamePaused() ? "PAUSED" : Util.toIntStringCeil(gameStats.timeRemaining);
+        Color levelTimeColor = isGamePaused() ? Color.BLUE : ((gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130));
+        Color levelTimeBckGndColor = isGamePaused() ? Color.YELLOW : ((gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235));
         Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
         Draw.drawRect(g, levelTimePos, 0, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get().getPixelsPerUnit(), 0.15 * 42 / World.get().getPixelsPerUnit());
-		Draw.drawTextCentered(g, levelTimeText, levelTimePos, 0, Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
+		Draw.drawTextCentered(g, levelTimeText, levelTimePos, 0, isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
 
         // Player 1...
         Tank tank = getTank(0);
@@ -323,6 +352,10 @@ public class Game implements ActionListener {
             Color textColor = (gameStats.playerCount == 1) ? Tank.TANK_COLOR_TURRET_FILL_1 : 
                                     ((gameStats.levelScore == gameStats.levelScore2) ? Color.MAGENTA :  
                                         ((gameStats.levelScore > gameStats.levelScore2) ? Tank.TANK_COLOR_TURRET_FILL_1 : Tank.TANK_COLOR_TURRET_FILL_2));
+            Color bckGndColor = (gameStats.playerCount == 1) ? new Color(220, 245, 220) : 
+                                    ((gameStats.levelScore == gameStats.levelScore2) ? Color.LIGHT_GRAY :  
+                                        ((gameStats.levelScore > gameStats.levelScore2) ? new Color(220, 245, 220) : new Color(220, 220, 245)));
+            Draw.drawRect(g, finalTextPos, 0, new Vec2(7.5, 1), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
             Draw.drawTextCentered(g, finalText, finalTextPos, 0, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
         }
     }

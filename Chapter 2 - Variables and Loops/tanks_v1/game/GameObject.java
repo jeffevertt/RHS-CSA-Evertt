@@ -29,7 +29,13 @@ public class GameObject {
 	}    
 
     protected void update(double deltaTime) {
+        // Timers...
         timeSinceBorn += deltaTime;
+
+        // If we are off the field, kill ourselves off...
+        if (!Util.isInsideField(this.pos)) {
+            this.timeTillDeath = Math.max(this.timeTillDeath, 0.0001);
+        }
     }
 
     protected double calcDrawScale() {

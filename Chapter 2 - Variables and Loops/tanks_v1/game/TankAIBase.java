@@ -36,6 +36,9 @@ public abstract class TankAIBase {
     public Vec2 getTankVel() {
         return tank.getVel();
     }
+    public double getTankAngVel() {
+        return tank.getAngVel();
+    }
     public double getTankShotSpeed() {
         return Ammo.AMMO_SPEED;
     }

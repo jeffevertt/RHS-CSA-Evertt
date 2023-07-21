@@ -8,9 +8,4 @@ public class OtherAI extends TankAIBase {
 
     // TODO: Your opponents code goes here
 
-    public boolean updateAI() {
-        // TODO: Your code goes here
-
-        return true;
-    }    
 }
