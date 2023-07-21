@@ -61,6 +61,20 @@ public class PowerUp extends GameObject {
 			// Update it...
 			this.timeTillDeath = Math.min(this.timeTillDeath + deltaTime * 2.0, 1.0);
 		}
+		else {
+			// Check for tanks collecting us...
+			ArrayList<GameObject> gameObjects = Simulation.getGameObjects();
+			for (int i = 0; i < gameObjects.size(); ++i) {
+				GameObject gameObject = gameObjects.get(i);
+				if (gameObject instanceof Tank) {
+					Tank tank = (Tank)gameObject;
+					if (Util.circlesIntersect(this.pos, POWERUP_HALFDIMS.x, tank.pos, Tank.BODY_HALFSIZE.x)) {
+						// React to it...
+						tank.onCollect(this);
+					}
+				}
+			}
+		}
 	}
 
 	protected void drawShadow(Graphics2D g) {

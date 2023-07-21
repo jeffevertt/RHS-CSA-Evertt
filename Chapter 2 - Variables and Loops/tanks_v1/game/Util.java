@@ -46,6 +46,10 @@ public class Util {
     public static double randRange(double min, double max) {
         return min + Math.random() * (max - min);
     }
+    public static String toIntStringCeil(double value) {
+        int valueInt = (int)Math.ceil(value);
+        return String.valueOf(valueInt);
+    }
     public static String toIntStringFloor(double value) {
         int valueInt = (int)Math.floor(value);
         return String.valueOf(valueInt);

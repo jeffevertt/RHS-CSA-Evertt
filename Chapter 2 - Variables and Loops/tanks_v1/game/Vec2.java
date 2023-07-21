@@ -112,11 +112,11 @@ public class Vec2 {
 		return new Vec2(Util.clamp(this.x, min.x, max.x), Util.clamp(this.y, min.y, max.y));
 	}
 
-	public String toStringWithSpaceDelimiter() {
+	public String toStringWithCommaDelimiter() {
 		Vec2 v = new Vec2(this.x, this.y);
 		v.x = Math.round(v.x * 1000) / 1000;
 		v.y = Math.round(v.y * 1000) / 1000;
-		return "" + v.x + " " + v.y;		
+		return "(" + v.x + "," + v.y + ")";
 	}
 
 	// Static functions...
@@ -206,6 +206,6 @@ public class Vec2 {
 	}
 
 	public String toString() {
-		return toStringWithSpaceDelimiter();
+		return toStringWithCommaDelimiter();
 	}
 }

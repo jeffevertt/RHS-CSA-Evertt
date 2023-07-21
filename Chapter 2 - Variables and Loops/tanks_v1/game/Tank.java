@@ -127,6 +127,15 @@ public class Tank extends GameObject {
 	public Vec2 getHalfDims() {
 		return new Vec2(BODY_HALFSIZE.x, BODY_HALFSIZE.x);
 	}
+	public double getMoveSpeed() {
+		return tankMoveSpeed;
+	}
+	public double getTurnSpeed() {
+		return tankTurnSpeed;
+	}
+	public double getShotRange() {
+		return ammoMaxRange;
+	}
 	public Vec2 ammoSpawnLocation() {
 		return this.toWorld(new Vec2(TURRET_HALFLENGTH - TURRET_INSET, 0));
 	}
@@ -239,11 +248,20 @@ public class Tank extends GameObject {
 
 		return true;
 	}
+
+	public Vec2 getVel() {
+		if ((this.activeCommand != null) && 
+			(this.activeCommand.type == TankCmd_Move.TYPE)) {
+			TankCmd_Move cmdMove = (TankCmd_Move)this.activeCommand;
+			return Vec2.multiply(cmdMove.moveVec.unit(), this.tankMoveSpeed);
+		}
+		return Vec2.zero();
+	}	
 	
-	protected boolean queueCommand(String cmdStr, Vec2 param) {	
-		return queueCommand(cmdStr, param, false);
+	protected boolean queueCmd(String cmdStr, Vec2 param) {	
+		return queueCmd(cmdStr, param, false);
 	}
-	private boolean queueCommand(String cmdStr, Vec2 param, boolean insertFront) {
+	private boolean queueCmd(String cmdStr, Vec2 param, boolean insertFront) {
 		// Convert to TankCmd class type & validate...
 		TankCmd cmd = null;
 		if (cmdStr.toLowerCase().equals(TankCmd_Move.TYPE)) {
@@ -298,6 +316,11 @@ public class Tank extends GameObject {
 		}
 
 		return true;
+	}
+
+	protected void cancelAllCommands() {
+		this.queuedCommands.clear();
+		finishActiveCommand();
 	}
 	
 	protected void finishActiveCommand() {

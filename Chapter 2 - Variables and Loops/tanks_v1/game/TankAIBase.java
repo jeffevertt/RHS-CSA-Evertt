@@ -9,15 +9,47 @@ public abstract class TankAIBase {
 	// Member variables
 	protected Tank tank;
 
+    // Override this function, to specify your name
+    public String getPlayerName() {
+        return DEFAULT_PLAYER_NAME;
+    }
+
 	// Accessors
+    public Vec2 getTankPos() {
+        return tank.getPos();
+    }
+    public Vec2 getTankDir() {
+        return tank.getDir();
+    }
+    public double getTankAngle() {
+        return tank.getDir().angle();
+    }
+	public double getTankMoveSpeed() {
+		return tank.getMoveSpeed();
+	}
+	public double getTankTurnSpeed() {
+		return tank.getTurnSpeed();
+	}
+	public double getTankShotRange() {
+		return tank.getShotRange();
+	}
+    public Vec2 getTankVel() {
+        return tank.getVel();
+    }
+    public double getTankShotSpeed() {
+        return Ammo.AMMO_SPEED;
+    }
 	public Tank getTank() {
         return tank;
     }
     protected void setTank(Tank tank) {
         this.tank = tank;
     }
-    public String getPlayerName() {
-        return DEFAULT_PLAYER_NAME;
+    public double getLevelTimeRemaining() {
+        return Game.get().getLevelTimeRemaining();
+    }
+    public double getLevelTimeMax() {
+        return Game.get().getLevelTimeMax();
     }
 
     // Object query functions
@@ -62,7 +94,7 @@ public abstract class TankAIBase {
     // Queue a command to be executed by the tank...updateCommands should call this.
     //  Note that you can queue multiple commands, but updateCommands will not be called 
     //  again until all queued commands have completed.
-    public boolean queueCommand(String cmdStr, Vec2 param) {
-        return tank.queueCommand(cmdStr, param);
+    public boolean queueCmd(String cmdStr, Vec2 param) {
+        return tank.queueCmd(cmdStr, param);
     }
 }

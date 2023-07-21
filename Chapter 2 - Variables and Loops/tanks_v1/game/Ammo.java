@@ -6,9 +6,9 @@ import java.util.ArrayList;
 
 public class Ammo extends GameObject {
     // Constants...
-    public final int AMMO_SPEED = 8;
-    public final double AMMO_RADIUS = 0.15;
-	public static final double AMMO_HEIGHT = 1.25;
+    public static final int AMMO_SPEED = 8;
+    public static final double AMMO_RADIUS = 0.15;
+	private static final double AMMO_HEIGHT = 1.25;
 	private static final double AMMO_STROKE_WIDTH = 0.05;
 	private static final Color AMMO_COLOR_FILL_0 = new Color(30, 120, 30);
 	private static final Color AMMO_COLOR_FILL_1 = new Color(30, 30, 120);

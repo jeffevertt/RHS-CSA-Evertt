@@ -265,13 +265,19 @@ public class Game implements ActionListener {
         
         // Update levelTime...
         gameStats.timeRemaining = Math.max(gameStats.timeRemaining - deltaTime, 0);
+        if (gameStats.timeRemaining == 0) {
+            for (int i = 0; i < gameStats.playerCount; ++i) {
+                Tank tank = getTank(i);
+                tank.cancelAllCommands();
+            }
+        }
     }
 
     protected void Draw(Graphics2D g) {
         // Time remaining...
         Vec2 levelTimePos = Util.toCoordFrame(new Vec2((Window.get().getWidth() - World.FIELD_BORDER * 2) / 2, World.FIELD_BORDER_TOP / 2 + 5));
         Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));
-        String levelTimeText = Util.toIntStringFloor(gameStats.timeRemaining);
+        String levelTimeText = Util.toIntStringCeil(gameStats.timeRemaining);
         Color levelTimeColor = (gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130);
         Color levelTimeBckGndColor = (gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235);
         Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
@@ -313,7 +319,7 @@ public class Game implements ActionListener {
             Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(), 0.5);
             String finalText = (gameStats.playerCount == 1) ? ("Final Score: " + gameStats.levelScore) :
                                     ((gameStats.levelScore == gameStats.levelScore2) ? "TIE GAME!" :  
-                                        ((gameStats.levelScore > gameStats.levelScore2) ? (getTank(0).getPlayerName() + " Wins!") : (getTank(1).getPlayerName() + " Wins!")));
+                                        ((gameStats.levelScore > gameStats.levelScore2) ? (getTank(0).getPlayerName() + " WINS!") : (getTank(1).getPlayerName() + " Wins!")));
             Color textColor = (gameStats.playerCount == 1) ? Tank.TANK_COLOR_TURRET_FILL_1 : 
                                     ((gameStats.levelScore == gameStats.levelScore2) ? Color.MAGENTA :  
                                         ((gameStats.levelScore > gameStats.levelScore2) ? Tank.TANK_COLOR_TURRET_FILL_1 : Tank.TANK_COLOR_TURRET_FILL_2));

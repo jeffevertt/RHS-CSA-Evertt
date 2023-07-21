@@ -1,5 +1,6 @@
 package ai;
 
+import game.Tank;
 import game.TankAIBase;
 import game.Vec2;
 
@@ -14,10 +15,6 @@ public class TankAI extends TankAIBase {
 
     public boolean updateAI() {
         // TODO: Your code goes here
-
-        // Test...
-        queueCommand("move", new Vec2(getPowerUp().getPos().x - tank.getPos().x, 0));
-        queueCommand("move", new Vec2(0, getPowerUp().getPos().y - tank.getPos().y));
 
         return true;
     }
