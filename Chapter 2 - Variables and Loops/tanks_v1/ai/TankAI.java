@@ -5,7 +5,7 @@ import game.Vec2;
 
 public class TankAI extends TankAIBase {
     public String getPlayerName() {
-        return "<Your Name>";
+        return "<Your Name>";  // <---- Put your name in there
     }
         
     // You are free to add member variables and functions to this class.
