@@ -6,9 +6,10 @@ import java.awt.Graphics2D;
 import java.awt.event.*;
 import javax.swing.Timer;
 
+import ai.OtherAI;
+
 public class Game implements ActionListener {
     // Constants...
-    public static final int PLAYER_COUNT            = 1;
     public static final int STARTING_LEVEL_TIME     = 90;
 
     public static final int POINTS_CMD              = -1;
@@ -16,8 +17,8 @@ public class Game implements ActionListener {
     public static final int POINTS_HIT_OTHER        = 10;
     public static final int POINTS_HIT_TARGET       = 25;
     public static final int POINTS_POWERUP_PTS      = 25;
-    public static final int POINTS_POWERUP_RANGE    = 25;   // Percentile increase
-    public static final int POINTS_POWERUP_SPEED    = 20;   // Percentile increase
+    public static final int POINTS_POWERUP_RANGE    = 20;   // Percentile increase
+    public static final int POINTS_POWERUP_SPEED    = 15;   // Percentile increase
 
     private static final int UPDATE_TIMER_PERIOD  = 16;  // In milliseconds
     private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.5);
@@ -25,13 +26,13 @@ public class Game implements ActionListener {
 
     // Nested classes...
     protected class GameStats {
-        public int playerCount = PLAYER_COUNT;
+        public int playerCount = 1;
         public double timeRemaining = STARTING_LEVEL_TIME;
 	    public int levelScore = 0;
         public int levelScore2 = 0;    // "Other" player score
 
         public void reset() {
-            playerCount = PLAYER_COUNT;
+            playerCount = 1;
             timeRemaining = STARTING_LEVEL_TIME;
 	        levelScore = 0;
             levelScore2 = 0;
@@ -166,6 +167,11 @@ public class Game implements ActionListener {
     protected void onLevelSetup() {
 		// Default time for level...
 		gameStats.reset();
+
+        // Figure out if it is a two player game, base on if the OtherAI has a player name set...
+        if (!(new OtherAI()).getPlayerName().equals(TankAIBase.DEFAULT_PLAYER_NAME)) {
+            gameStats.playerCount = 2;
+        }
 		
         // Reset the simulation...
         Simulation.get().destroyAll();
@@ -300,6 +306,18 @@ public class Game implements ActionListener {
             Draw.drawRect(g, player2Pos, 0, player2HalfDims, 1.0, player2BckGndColor, player2Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
             Draw.drawTextCentered(g, tank.getPlayerName(), new Vec2(player2Pos.x, player2Pos.y + player2HalfDims.y * 0.55), 0, Draw.FontSize.XSMALL, player2Color, Color.BLACK);
             Draw.drawTextCentered(g, player2Text, new Vec2(player2Pos.x, player2Pos.y - player2HalfDims.y * 0.35), 0, Draw.FontSize.SMALL, player2Color, Color.BLACK);
+        }
+
+        // Winner UI...
+        if (gameStats.timeRemaining == 0) {
+            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(), 0.5);
+            String finalText = (gameStats.playerCount == 1) ? ("Final Score: " + gameStats.levelScore) :
+                                    ((gameStats.levelScore == gameStats.levelScore2) ? "TIE GAME!" :  
+                                        ((gameStats.levelScore > gameStats.levelScore2) ? (getTank(0).getPlayerName() + " Wins!") : (getTank(1).getPlayerName() + " Wins!")));
+            Color textColor = (gameStats.playerCount == 1) ? Tank.TANK_COLOR_TURRET_FILL_1 : 
+                                    ((gameStats.levelScore == gameStats.levelScore2) ? Color.MAGENTA :  
+                                        ((gameStats.levelScore > gameStats.levelScore2) ? Tank.TANK_COLOR_TURRET_FILL_1 : Tank.TANK_COLOR_TURRET_FILL_2));
+            Draw.drawTextCentered(g, finalText, finalTextPos, 0, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
         }
     }
 }

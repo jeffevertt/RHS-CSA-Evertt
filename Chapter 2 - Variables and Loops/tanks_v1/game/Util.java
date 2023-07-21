@@ -103,8 +103,11 @@ public class Util {
     public static Vec2 clampToClosestHalfUnit(Vec2 point) {
         return new Vec2(Math.round(point.x - 0.5) + 0.5, Math.round(point.y - 0.5) + 0.5);
     }
+    public static Vec2 maxCoordFrameUnits() {
+        return new Vec2(World.get().getCanvasSize().x / World.get().getPixelsPerUnit(), World.get().getCanvasSize().y / World.get().getPixelsPerUnit());
+    }
     public static Vec2 maxHalfUnitsInField() {
-        Vec2 maxHalfUnits = new Vec2(World.get().getCanvasSize().x / World.get().getPixelsPerUnit(), World.get().getCanvasSize().y / World.get().getPixelsPerUnit());
+        Vec2 maxHalfUnits = maxCoordFrameUnits();
         maxHalfUnits = clampToClosestHalfUnit(maxHalfUnits);
         if (!isInsideField(maxHalfUnits, 0.2)) {
             maxHalfUnits.subtract(new Vec2(1, 1));

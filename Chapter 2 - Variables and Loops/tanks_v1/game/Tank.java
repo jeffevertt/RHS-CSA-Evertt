@@ -27,12 +27,12 @@ public class Tank extends GameObject {
 	private static final double TANK_TURRET_STROKE_WIDTH = 0.035;
 	private static final double TANK_ROUNDED_SIZE = 0.1;
 
-	private static final Color TANK_COLOR_BODY_FILL_1 = Color.GREEN;
-	private static final Color TANK_COLOR_BODY_FILL_2 = new Color(100, 100, 250);
-	private static final Color TANK_COLOR_TREAD_FILL = Color.DARK_GRAY;
-	private static final Color TANK_COLOR_TURRET_FILL_1 = new Color(44, 120, 44);
-	private static final Color TANK_COLOR_TURRET_FILL_2 = new Color(44, 44, 120);
-	private static final Color TANK_COLOR_STROKE = Color.BLACK;	
+	protected static final Color TANK_COLOR_BODY_FILL_1 = Color.GREEN;
+	protected static final Color TANK_COLOR_BODY_FILL_2 = new Color(100, 100, 250);
+	protected static final Color TANK_COLOR_TREAD_FILL = Color.DARK_GRAY;
+	protected static final Color TANK_COLOR_TURRET_FILL_1 = new Color(44, 120, 44);
+	protected static final Color TANK_COLOR_TURRET_FILL_2 = new Color(44, 44, 120);
+	protected static final Color TANK_COLOR_STROKE = Color.BLACK;	
 
 	public final static double STARTING_AMMO_RANGE = 8;
 	public final static double STARTING_MOVE_SPEED = 2.5;   // units per second
@@ -202,9 +202,9 @@ public class Tank extends GameObject {
 		return Vec2.add(Vec2.add(this.pos, Vec2.multiply(this.forward(), pt.x)), Vec2.multiply(this.dir, pt.y));
 	}
 	
-	protected void onCollected(PowerUp powerup) {
+	protected void onCollect(PowerUp powerup) {
 		// Trigger death spiral...
-		this.timeTillDeath = Math.max(this.timeTillDeath, 0.0001);
+		powerup.timeTillDeath = Math.max(powerup.timeTillDeath, 0.0001);
 		
 		// Give up the points...
 		switch (powerup.getType()) {
@@ -368,7 +368,9 @@ public class Tank extends GameObject {
 				
 				// Update the active command...
 				cmdMove.progress = Math.min(cmdMove.progress + deltaTime / moveTravelTime, 1);
+				Vec2 prevPos = this.pos;
 				this.pos = Vec2.add(cmdMove.startPos, Vec2.multiply(moveVec, cmdMove.progress));
+				Vec2 motionVec = Vec2.subtract(this.pos, prevPos);
 				
 				// Check for tank overlap...
 				Tank otherTank = Game.get().getTank(this.playerIdx == 0 ? 1 : 0);
@@ -376,6 +378,20 @@ public class Tank extends GameObject {
 					Vec2 deltaVec = Vec2.subtract(this.pos, otherTank.pos).unit();
 					this.pos = Vec2.add(this.pos, Vec2.multiply(deltaVec, 0.1));
 					cmdMove.progress = 1;
+				}
+
+				// Check for collecting powerups on the way (might be moving fast, so swept collision)...
+				ArrayList<GameObject> gameObjects = Simulation.getGameObjects();
+				for (int i = 0; i < gameObjects.size(); ++i) {
+					GameObject gameObject = gameObjects.get(i);
+					if (gameObject instanceof PowerUp) {
+						PowerUp powerUp = (PowerUp)gameObject;
+						if (!powerUp.isDying() &&
+						    Util.intersectCircleCapsule(powerUp.pos, PowerUp.POWERUP_HALFDIMS.x, prevPos, motionVec, Tank.BODY_HALFSIZE.x)) {
+							// Collect it...
+							this.onCollect(powerUp);
+						}
+					}
 				}
 				
 				// Keep in bounds...
@@ -395,6 +411,7 @@ public class Tank extends GameObject {
 					this.pos = Vec2.add(this.pos, Vec2.multiply(Vec2.down(), 0.1));
 					cmdMove.progress = 1;
 				}
+				this.pos.clamp(new Vec2(0.2, 0.2), Vec2.subtract(Util.maxCoordFrameUnits(), new Vec2(0.2, 0.2)));
 				
 				// And...check for done...
 				if (cmdMove.progress == 1) {

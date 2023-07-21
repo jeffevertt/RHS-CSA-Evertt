@@ -99,7 +99,19 @@ public class Vec2 {
 		this.y = x * sin + y * cos;
 		return this;
 	}
-	
+
+	public Vec2 max(Vec2 other) {
+		return new Vec2(Math.max(this.x, other.x), Math.max(this.y, other.y));
+	}
+
+	public Vec2 min(Vec2 other) {
+		return new Vec2(Math.min(this.x, other.x), Math.min(this.y, other.y));
+	}
+
+	public Vec2 clamp(Vec2 min, Vec2 max) {
+		return new Vec2(Util.clamp(this.x, min.x, max.x), Util.clamp(this.y, min.y, max.y));
+	}
+
 	public String toStringWithSpaceDelimiter() {
 		Vec2 v = new Vec2(this.x, this.y);
 		v.x = Math.round(v.x * 1000) / 1000;
@@ -161,6 +173,18 @@ public class Vec2 {
 		Vec2 ret = new Vec2(v1.x, v1.y);
 		return ret.rotate(angle);
 	}
+
+	public static Vec2 max(Vec2 v1, Vec2 v2) {
+		return new Vec2(Math.max(v1.x, v2.x), Math.max(v1.y, v2.y));
+	}
+
+	public static Vec2 min(Vec2 v1, Vec2 v2) {
+		return new Vec2(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y));
+	}
+
+	public static Vec2 clamp(Vec2 v, Vec2 min, Vec2 max) {
+		return new Vec2(Util.clamp(v.x, min.x, max.x), Util.clamp(v.y, min.y, max.y));
+	}	
 	
 	public static Vec2 copy(Vec2 other) {
 		return new Vec2(other.x, other.y);

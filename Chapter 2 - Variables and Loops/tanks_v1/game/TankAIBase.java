@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public abstract class TankAIBase {
     // Constants
-	// ...
+	public static final String DEFAULT_PLAYER_NAME = "UNKNOWN";
 
 	// Member variables
 	protected Tank tank;
@@ -17,7 +17,7 @@ public abstract class TankAIBase {
         this.tank = tank;
     }
     public String getPlayerName() {
-        return "UNKNOWN";
+        return DEFAULT_PLAYER_NAME;
     }
 
     // Object query functions
