@@ -12,10 +12,14 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -43,6 +47,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
     private Vec2 origin = new Vec2(0, 0);
     private Vec2 canvasSize = new Vec2(0, 0);
     private double pixelsPerUnit = 1;
+    private BufferedImage bckGndImage = null;
     private Timer renderTimer;
 
     // Accessors...
@@ -75,6 +80,13 @@ public class World extends JPanel implements ActionListener, MouseListener {
 
         // Defaults...
         setBackground(COLOR_BACKGROUND);
+
+        // Background texture...
+        // try {
+        //     bckGndImage = ImageIO.read(new File("textures/ground.png"));
+        // } 
+        // catch (IOException e) {
+        // }
 
         // Kick off render timer...
         if (renderTimer != null && renderTimer.isRunning()) {
@@ -145,8 +157,13 @@ public class World extends JPanel implements ActionListener, MouseListener {
         g.fillRect(0, 0, getWidth(), getHeight());
 
         // Background...
-        g.setColor(COLOR_BACKGROUND);
-        g.fillRect(FIELD_BORDER, FIELD_BORDER_TOP, getWidth() - FIELD_BORDER * 2, getHeight() - FIELD_BORDER - FIELD_BORDER_TOP);
+        if (bckGndImage != null) {
+            Vec2 maxUnitsPixels = Util.toPixels(Util.maxCoordFrameUnits());
+            g.drawImage(bckGndImage, (int)origin.x, (int)origin.y, (int)(maxUnitsPixels.x - origin.x), (int)(maxUnitsPixels.y - origin.y), null);
+        } else {
+            g.setColor(COLOR_BACKGROUND);
+            g.fillRect(FIELD_BORDER, FIELD_BORDER_TOP, getWidth() - FIELD_BORDER * 2, getHeight() - FIELD_BORDER - FIELD_BORDER_TOP);
+        }
         g.setColor(!Game.get().isGamePaused() ? (Game.get().isGameActive() ? Color.DARK_GRAY : Color.LIGHT_GRAY) : Color.RED);
         g.setStroke(new BasicStroke(2));
         g.drawRect(FIELD_BORDER, FIELD_BORDER_TOP, getWidth() - FIELD_BORDER * 2, getHeight() - FIELD_BORDER - FIELD_BORDER_TOP);
