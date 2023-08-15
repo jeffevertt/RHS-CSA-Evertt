@@ -43,7 +43,7 @@ public class Game implements ActionListener {
 
 	// Singleton...
 	private static Game instance = null;
-	protected static synchronized Game get()
+	public static synchronized Game get()
     {
         if (instance == null)
             instance = new Game();
@@ -55,16 +55,16 @@ public class Game implements ActionListener {
     }
 
     // Accessors...
-    protected int getPlayerCount() {
+    public int getPlayerCount() {
         return gameStats.playerCount;
     }
-    protected double getLevelTimeRemaining() {
+    public double getLevelTimeRemaining() {
         return gameStats.timeRemaining;
     }
-    protected int getLevelTimeMax() {
+    public int getLevelTimeMax() {
         return STARTING_LEVEL_TIME;
     }
-    protected int getPlayerScore(int playerIdx) {
+    public int getPlayerScore(int playerIdx) {
         if (playerIdx == 0) {
             return gameStats.levelScore;
         }
