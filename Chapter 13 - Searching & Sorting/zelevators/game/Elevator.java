@@ -2,11 +2,13 @@ package game;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
 
 public class Elevator extends GameObject {
     // Consts...
-    public static final double TRAVEL_VELOCITY = 0.5;        // Units are floors per second
-    public static final double DOOR_OPEN_VELOCITY = 2.0;     // Fully open/close in 1/DOOR_OPEN_VELOCITY seconds
+    public static final double TRAVEL_VELOCITY = 0.5;       // Units are floors per second
+    public static final double DOOR_OPEN_VELOCITY = 2.0;    // Fully open/close in 1/DOOR_OPEN_VELOCITY seconds
+    public static final int MAX_CAPACITY = 8;               // Maximum number of zombies it can hold
 
     // Private member variables...
     private int elevatorIdx = -1;
@@ -55,6 +57,20 @@ public class Elevator extends GameObject {
     }
     protected double getDoorClosedPercent() {
         return doorClosePerc;
+    }
+    protected boolean getAreDoorsOpen() {
+        return (doorClosePerc == 0.0);
+    }
+    protected int getNumberOfZombiesOnElevator() {
+        int count = 0;
+        ArrayList<Zombie> zombies = Simulation.get().getZombies();
+        for (int i = 0; i < zombies.size(); i++) {
+            count += zombies.get(i).isOnElevator(elevatorIdx) ? 1 : 0;
+        }
+        return count;
+    }
+    protected boolean canAcceptNewZombiePassenger() {
+        return getAreDoorsOpen() && (getNumberOfZombiesOnElevator() < MAX_CAPACITY);
     }
     protected boolean requestFloor(int floorIdx) {
         if ((floorIdx < 0) || (floorIdx >= floorRequests.length)) {
