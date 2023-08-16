@@ -5,8 +5,8 @@ import java.awt.Graphics2D;
 
 public class Elevator extends GameObject {
     // Consts...
-    public double TRAVEL_VELOCITY = 0.5;        // Units are floors per second
-    public double DOOR_OPEN_VELOCITY = 2.0;     // Fully open/close in 1/DOOR_OPEN_VELOCITY seconds
+    public static final double TRAVEL_VELOCITY = 0.5;        // Units are floors per second
+    public static final double DOOR_OPEN_VELOCITY = 2.0;     // Fully open/close in 1/DOOR_OPEN_VELOCITY seconds
 
     // Private member variables...
     private int elevatorIdx = -1;

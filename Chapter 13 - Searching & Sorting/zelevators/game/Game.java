@@ -119,6 +119,11 @@ public class Game implements ActionListener {
         for (int i = 0; i < gameConfig.elevatorCount; ++i) {
             Simulation.get().createElevator(i, 0);
         }
+
+        // Zombies (initial set of them)...
+        for (int i = 0; i < gameConfig.floorCount / 2; ++i) {
+            Simulation.get().createZombie(Util.randRangeInt(0, Game.get().getFloorCount() - 1));
+        }
         
         // Do an initial update...
         onLevelUpdate(0, true);

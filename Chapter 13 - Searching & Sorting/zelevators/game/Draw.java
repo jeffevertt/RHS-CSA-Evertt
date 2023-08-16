@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 
 public class Draw {
     // Enums...
@@ -73,7 +74,7 @@ public class Draw {
         int roundedPixels = Util.toPixelsLengthInt(roundedRadius * scale * 2); // Extra rounding for shadows
         g.fillRoundRect((int)(geoOffsetPixels.x-halfDimsPixels.x), (int)(geoOffsetPixels.y-halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), roundedPixels, roundedPixels);
     }
-     public static void drawRect(Graphics2D g, Vec2 pos, Vec2 halfDims, double scale, Color colorFill, Color colorStroke, double strokeWidth, double roundedRadius) {
+    public static void drawRect(Graphics2D g, Vec2 pos, Vec2 halfDims, double scale, Color colorFill, Color colorStroke, double strokeWidth, double roundedRadius) {
         // Setup transform...
         Vec2 drawPosPixels = Util.toPixels(pos);
         AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y);
@@ -98,6 +99,17 @@ public class Draw {
             g.setStroke(new BasicStroke((float)Math.max(Util.toPixelsLength(strokeWidth), 1)));
             g.drawRoundRect((int)(geoOffsetPixels.x-halfDimsPixels.x), (int)(geoOffsetPixels.y-halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), roundedPixels, roundedPixels);
         }
+    }
+    public static void drawImage(Graphics2D g, BufferedImage image, Vec2 pos, Vec2 halfDims, double scale) {
+        // Transform...
+        g.setTransform(new AffineTransform());
+        
+        // Setup...
+        Vec2 drawPosPixels = Util.toPixels(pos);
+        Vec2 halfDimsPixels = Util.toPixelDims(Vec2.multiply(halfDims, scale));
+
+        // Draw it...
+        g.drawImage(image, (int)(drawPosPixels.x - halfDimsPixels.x), (int)(drawPosPixels.y - halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), null);
     }
     public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, FontSize fontSize, Color color) {
         drawTextCentered(g, text, pos, fontSize, color, null);

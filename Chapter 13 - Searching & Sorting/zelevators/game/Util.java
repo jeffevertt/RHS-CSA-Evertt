@@ -43,8 +43,12 @@ public class Util {
     }
 
     // Misc utils...
-    public static double randRange(double min, double max) {
-        return min + Math.random() * (max - min);
+    public static double randRange(double minInclusive, double maxExclusive) {
+        return minInclusive + Math.random() * (maxExclusive - minInclusive);
+    }
+    public static int randRangeInt(int minInclusive, int maxInclusive) {
+        double randDouble = randRange(minInclusive, maxInclusive + 1);
+        return (int)randDouble;
     }
     public static String toIntStringCeil(double value) {
         int valueInt = (int)Math.ceil(value);
