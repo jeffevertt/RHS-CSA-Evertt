@@ -21,24 +21,36 @@ public class Simulation {
     protected Simulation() {
     }
 
-    // Accessors...
-    protected boolean hasElevatorRequest(int floor, ElevatorController.Direction dir) {
-        if ((floor < 0) || (floor >= elevatorRequests.size())) {
+    // Accessors/Query functions...
+    protected boolean hasElevatorRequest(int floorIdx, ElevatorController.Direction dir) {
+        if ((floorIdx < 0) || (floorIdx >= elevatorRequests.size())) {
             return false;
         }
-        return elevatorRequests.get(floor).contains(dir);
+        return elevatorRequests.get(floorIdx).contains(dir);
     }
-    protected void addElevatorRequest(int floor, ElevatorController.Direction direction) {
-        if ((floor < 0) || (floor >= elevatorRequests.size())) {
+    protected void addElevatorRequest(int floorIdx, ElevatorController.Direction direction) {
+        if ((floorIdx < 0) || (floorIdx >= elevatorRequests.size())) {
             return;
         }
-        elevatorRequests.get(floor).add(direction);
+        elevatorRequests.get(floorIdx).add(direction);
+
+        // Event...
+        Game.get().getElevatorController().onElevatorRequest(floorIdx, direction);
     }
-    protected void remElevatorRequest(int floor, ElevatorController.Direction direction) {
-        if ((floor < 0) || (floor >= elevatorRequests.size())) {
+    protected void remElevatorRequest(int floorIdx, ElevatorController.Direction direction) {
+        if ((floorIdx < 0) || (floorIdx >= elevatorRequests.size())) {
             return;
         }
-        elevatorRequests.get(floor).remove(direction);
+        elevatorRequests.get(floorIdx).remove(direction);
+    }
+    protected boolean anyZombiesGettingOnElevator(Elevator elevator) {
+        for (int i = 0; i < zombies.size(); ++i) {
+            Zombie zombie = zombies.get(i);
+            if (zombie.isGettingOnElevator(elevator)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     // Member functions (methods)...
@@ -64,6 +76,13 @@ public class Simulation {
 
     protected ArrayList<Elevator> getElevators() {
         return elevators;
+    }
+
+    protected Elevator getElevator(int elevatorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return null;
+        }
+        return elevators.get(elevatorIdx);
     }
 
     protected ArrayList<Zombie> getZombies() {
@@ -120,7 +139,7 @@ public class Simulation {
             zombie.update(deltaTime); 
         }
     }
-    
+
     protected void cullNotInField() {
         // Check with all of them calling their "shouldBeCulled" function...
         int i = 0;

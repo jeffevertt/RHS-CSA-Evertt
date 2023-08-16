@@ -69,6 +69,12 @@ public class Zombie extends GameObject {
     protected int getCurrentFloor() {
         return currentFloor;
     }
+    protected boolean isGettingOnElevator(Elevator elevator) {
+        return ((state == State.Boarding) && elevator.getAreDoorsOpen() && ((int)elevator.getCurrentFloor() == currentFloor));
+    }
+    protected boolean isOnAnElevator() {
+        return (state == State.OnElevator);
+    }
     protected boolean isOnElevator(int elevatorIdx) {
         return (state == State.OnElevator) && (onElevatorIdx == elevatorIdx);
     }
@@ -138,6 +144,9 @@ public class Zombie extends GameObject {
                         // Pop, we're on...
                         state = State.OnElevator;
                         onElevatorIdx = trgElevator.getIndex();
+
+                        // Request our desired floor...
+                        trgElevator.requestFloor(targetFloor);
                     }
                 }
                 else {
@@ -158,10 +167,15 @@ public class Zombie extends GameObject {
                     state = State.WalkingOff;
                     onElevatorIdx = -1;
                 }
+
+                // Keep us locked to the elevator floor...
+                currentFloor = (int)elevator.getCurrentFloor();
+                pos.y = World.FLOOR_HEIGHT * elevator.getCurrentFloor() + halfDims.y + VERTICAL_OFFSET;
             } break;
             case WalkingOff : {
                 pos.x = pos.x + WALK_SPEED * deltaTime;
-                if (pos.x >= World.get().getCanvasSize().x) {
+                double posPixelsX = Util.toPixelsX(pos.x);
+                if (posPixelsX >= (World.get().getOrigin().x + World.get().getCanvasSize().x)) {
                     // Zombie: Delivered!
                     Game.get().awardPoints(Game.POINTS_ZOMBIE_DELIVERED);
                     this.timeTillDeath = Math.max(this.timeTillDeath, 0.0001);
@@ -197,13 +211,19 @@ public class Zombie extends GameObject {
 
     // Draw...
     protected void drawShadow(Graphics2D g) {
-        // TODO
     }
     protected void draw(Graphics2D g) {
+        // If we are in an elevator & the doors are closed, don't render us...
+        if ((state == State.OnElevator) && (Simulation.get().getElevator(onElevatorIdx).getAreDoorsClosed())) {
+            return;
+        }
+
+        // Draw the image...
         if (image != null) {
             double rotDegMidPt = 0.7;
             double rotDegT = (walkCycleAnimT < rotDegMidPt) ? (walkCycleAnimT / rotDegMidPt) : ((1.0 - (walkCycleAnimT - rotDegMidPt) / (1 - rotDegMidPt)) * rotDegMidPt);
-            Draw.drawImageRotated(g, image, pos, halfDims, rotDegT * -10, calcDrawScale());
+            Vec2 posDraw = Vec2.subtract(pos, Vec2.multiply(new Vec2(0, halfDims.y), timeTillDeath));
+            Draw.drawImageRotated(g, image, posDraw, halfDims, rotDegT * -10, calcDrawScale());
         }
     }
 }

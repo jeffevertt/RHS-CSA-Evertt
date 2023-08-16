@@ -188,20 +188,36 @@ public class World extends JPanel implements ActionListener, MouseListener {
                 drawElevatorUpDownButtons(g);
             }
 
-            // Elevators...
+            // Elevators (background)...
             ArrayList<Elevator> elevators = Simulation.get().getElevators();
             for (int i = 0; i < elevators.size(); ++i) {
                 Elevator elevator = elevators.get(i);
                 if (pass == 0) elevator.drawShadow(g);
-                else elevator.draw(g);
+                else elevator.drawBackground(g);
             }
 
-            // Zombies...
+            // Zombies (inside of elevators)...
             ArrayList<Zombie> zombies = Simulation.get().getZombies();
             for (int i = 0; i < zombies.size(); ++i) {
                 Zombie zombie = zombies.get(i);
-                if (pass == 0) zombie.drawShadow(g); 
-                else zombie.draw(g);
+                if (zombie.isOnAnElevator()) {
+                    zombie.draw(g);
+                }
+            }
+
+            // Elevators (doors)...
+            for (int i = 0; i < elevators.size(); ++i) {
+                Elevator elevator = elevators.get(i);
+                elevator.drawDoors(g);
+            }
+
+            // Zombies (outside of elevators)...
+            for (int i = 0; i < zombies.size(); ++i) {
+                Zombie zombie = zombies.get(i);
+                if (!zombie.isOnAnElevator()) {
+                    if (pass == 0) zombie.drawShadow(g); 
+                    else zombie.draw(g);
+                }
             }
         }
 

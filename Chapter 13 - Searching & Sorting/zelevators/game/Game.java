@@ -5,6 +5,8 @@ import java.awt.Graphics2D;
 import java.awt.event.*;
 import javax.swing.Timer;
 
+import game.ElevatorController.Direction;
+
 public class Game implements ActionListener {
     // Constants...
     public static final int STARTING_LEVEL_TIME     = 90;
@@ -14,7 +16,7 @@ public class Game implements ActionListener {
     public static final int POINTS_ZOMBIE_STARVED   = -200;
 
     private static final int UPDATE_TIMER_PERIOD    = 16;  // In milliseconds
-    private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.4);
+    private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(60, (double)World.FIELD_BORDER_TOP * 0.4);
     private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, (double)World.FIELD_BORDER_TOP * 0.55);
 
     // Nested classes...
@@ -58,6 +60,12 @@ public class Game implements ActionListener {
     public int getFloorCount() {
         return (gameConfig == null) ? -1 : gameConfig.floorCount;
     }
+    public boolean hasElevatorRequestUp(int floorIdx) {
+        return Simulation.get().hasElevatorRequest(floorIdx, Direction.Up);
+    }
+    public boolean hasElevatorRequestDown(int floorIdx) {
+        return Simulation.get().hasElevatorRequest(floorIdx, Direction.Down);
+    }
     public int getPlayerScore() {
         return gameStats.levelScore;
     }
@@ -66,6 +74,9 @@ public class Game implements ActionListener {
     }
     public boolean isGamePaused() {
         return this.gameStats.isPaused;
+    }
+    protected ElevatorController getElevatorController() {
+        return elevatorController;
     }
 
     // Member variables...
@@ -138,7 +149,14 @@ public class Game implements ActionListener {
         initialized = true;
     }
     private void onLevelUpdate(double deltaTime, boolean firstUpdate) {
-        // ...
+        // Elevator controller update event...
+        ElevatorController elevatorController = Game.get().getElevatorController();
+        if (elevatorController != null) {
+            if (firstUpdate) {
+                elevatorController.onGameStarted(this);
+            }
+            elevatorController.onUpdate(deltaTime);
+        }
     }
     private boolean updateElevatorController(double deltaTime) {
         // Don't call if we are paused...
@@ -166,6 +184,9 @@ public class Game implements ActionListener {
         
         // Clamp deltaTime (slow down the sim, if needed)...
         deltaTime = Math.min(deltaTime, 0.1);
+        if (gameStats.timeRemaining == 0) {
+            deltaTime = 0;
+        }
 
         // Deal with pause...
         if (isGamePaused()) {
@@ -187,7 +208,7 @@ public class Game implements ActionListener {
         // Update levelTime...
         gameStats.timeRemaining = Math.max(gameStats.timeRemaining - deltaTime, 0);
         if (gameStats.timeRemaining == 0) {
-            // TODO: Stop all motion
+            // Anything we need to do on the end of the game?
         }
     }
 

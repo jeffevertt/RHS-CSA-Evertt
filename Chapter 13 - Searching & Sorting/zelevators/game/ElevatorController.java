@@ -14,6 +14,9 @@ public interface ElevatorController {
     // Students should implement this function to return their name.
     public String getStudentName();
 
+    // Event: Game has started
+    public void onGameStarted(Game game);
+
     // Event: "outside-the-elevator" request, requesting an elevator.
     public void onElevatorRequest(int floorIdx, Direction dir); 
 
@@ -31,7 +34,10 @@ public interface ElevatorController {
     //  Note that arriving at and leaving a floor will clear internal elevator requests (both internal and external)
     //  Students do not need to override this method, instead it should be called to control the elevator.
     public default boolean gotoFloor(int elevatorIdx, int floorIdx) {
-        // todo...
+        Elevator elevator = Simulation.get().getElevator(elevatorIdx);
+        if (elevator != null) {
+            elevator.setTargetFloor(floorIdx);
+        }
         return true;
     }
 }

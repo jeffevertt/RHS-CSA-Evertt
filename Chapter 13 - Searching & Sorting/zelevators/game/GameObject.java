@@ -21,7 +21,7 @@ public class GameObject {
     }
 
     protected boolean shouldBeCulled() {
-        return false;
+        return (timeTillDeath >= 1);
     }
 
 	public boolean isDying() {
@@ -33,8 +33,11 @@ public class GameObject {
         timeSinceBorn += deltaTime;
 
         // If we are off the field, kill ourselves off...
-        if (!Util.isInsideField(this.pos)) {
-            this.timeTillDeath = Math.max(this.timeTillDeath, 0.0001);
+        if (!Util.isInsideField(pos)) {
+            timeTillDeath = Math.max(timeTillDeath, 0.0001);
+        }
+        if (timeTillDeath > 0.0) {
+            timeTillDeath = Math.min(timeTillDeath + deltaTime * 2, 1.0);
         }
     }
 
