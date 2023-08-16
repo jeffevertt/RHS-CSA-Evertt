@@ -21,22 +21,21 @@ public class Game implements ActionListener {
     protected class GameStats {
         public boolean isPaused = false;
         public double timeRemaining = 0;
-	    public int levelScore = 0;
+        public int levelScore = 0;
 
         public void reset() {
             isPaused = false;
             timeRemaining = STARTING_LEVEL_TIME;
-	        levelScore = 0;
+            levelScore = 0;
         }
     }
 
-	// Singleton...
-	private static Game instance = null;
-	protected static synchronized Game get()
+    // Singleton...
+    private static Game instance = null;
+    protected static synchronized Game get()
     {
         if (instance == null)
             instance = new Game();
-  
         return instance;
     }
     public static boolean Create(GameConfig config, ElevatorController elevatorController) {
@@ -44,6 +43,9 @@ public class Game implements ActionListener {
     }
 
     // Accessors...
+    public boolean isInitialized() {
+        return initialized;
+    }
     public double getLevelTimeRemaining() {
         return gameStats.timeRemaining;
     }
@@ -67,6 +69,7 @@ public class Game implements ActionListener {
     }
 
     // Member variables...
+    private boolean initialized = false;
     private GameConfig gameConfig = null;
     private GameStats gameStats = new GameStats();
     private ElevatorController elevatorController = null;
@@ -94,9 +97,9 @@ public class Game implements ActionListener {
         return true;
     }
 
-	protected void awardPoints(int points) {
-		gameStats.levelScore += points;
-	}
+    protected void awardPoints(int points) {
+        gameStats.levelScore += points;
+    }
 
     protected void setGamePause(boolean isPaused) {
         // If the game is done, ignore this...
@@ -109,13 +112,13 @@ public class Game implements ActionListener {
     }
 
     protected void onLevelSetup() {
-		// Default time for level...
-		gameStats.reset();
+        // Default time for level...
+        gameStats.reset();
 
         // Reset the simulation...
         Simulation.get().destroyAll();
-		
-		// Create the elevators...
+        
+        // Create the elevators...
         for (int i = 0; i < gameConfig.elevatorCount; ++i) {
             Simulation.get().createElevator(i, 0);
         }
@@ -124,12 +127,18 @@ public class Game implements ActionListener {
         for (int i = 0; i < gameConfig.floorCount / 2; ++i) {
             Simulation.get().createZombie(Util.randRangeInt(0, Game.get().getFloorCount() - 1));
         }
+
+        // Elevator requests...
+        Simulation.get().createElevatorRequests(gameConfig.floorCount);
         
         // Do an initial update...
         onLevelUpdate(0, true);
+
+        // Mark us a initialized...
+        initialized = true;
     }
     private void onLevelUpdate(double deltaTime, boolean firstUpdate) {
-		// ...
+        // ...
     }
     private boolean updateElevatorController(double deltaTime) {
         // Don't call if we are paused...
@@ -139,7 +148,7 @@ public class Game implements ActionListener {
 
         // Update it...
         if (elevatorController != null) {
-            elevatorController.update(deltaTime);
+            elevatorController.onUpdate(deltaTime);
         }
         
         return true;
@@ -191,7 +200,7 @@ public class Game implements ActionListener {
         Color levelTimeBckGndColor = isGamePaused() ? Color.YELLOW : ((gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235));
         Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
         Draw.drawRect(g, levelTimePos, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get().getPixelsPerUnit(), 0.15 * 42 / World.get().getPixelsPerUnit());
-		Draw.drawTextCentered(g, levelTimeText, levelTimePos, isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
+        Draw.drawTextCentered(g, levelTimeText, levelTimePos, isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
 
         // Player...
         if (elevatorController != null) {

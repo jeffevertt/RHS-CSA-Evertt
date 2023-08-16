@@ -1,6 +1,7 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 
 public class Simulation {
     // Singleton...
@@ -8,18 +9,39 @@ public class Simulation {
     protected static synchronized Simulation get() {
         if (instance == null)
             instance = new Simulation();
-  
         return instance;
     }
 
     // Member variables...
     private ArrayList<Elevator> elevators = new ArrayList<Elevator>();
     private ArrayList<Zombie> zombies = new ArrayList<Zombie>();
+    private ArrayList<EnumSet<ElevatorController.Direction>> elevatorRequests = new ArrayList<EnumSet<ElevatorController.Direction>>();
 
-    // Member functions (methods)...
+    // Constructor...
     protected Simulation() {
     }
+
+    // Accessors...
+    protected boolean hasElevatorRequest(int floor, ElevatorController.Direction dir) {
+        if ((floor < 0) || (floor >= elevatorRequests.size())) {
+            return false;
+        }
+        return elevatorRequests.get(floor).contains(dir);
+    }
+    protected void addElevatorRequest(int floor, ElevatorController.Direction direction) {
+        if ((floor < 0) || (floor >= elevatorRequests.size())) {
+            return;
+        }
+        elevatorRequests.get(floor).add(direction);
+    }
+    protected void remElevatorRequest(int floor, ElevatorController.Direction direction) {
+        if ((floor < 0) || (floor >= elevatorRequests.size())) {
+            return;
+        }
+        elevatorRequests.get(floor).remove(direction);
+    }
     
+    // Member functions (methods)...
     protected Elevator createElevator(int elevatorIdx, int initialFloor) {
         Elevator elevator = new Elevator(elevatorIdx, (double)initialFloor, Game.get().getFloorCount());
         this.elevators.add(elevator);
@@ -27,9 +49,17 @@ public class Simulation {
     }
     
     protected Zombie createZombie(int initialFloor) {
-        Zombie zombie = new Zombie((double)initialFloor);
+        Zombie zombie = new Zombie(initialFloor);
         this.zombies.add(zombie);
         return zombie;
+    }
+
+    protected void createElevatorRequests(int floorCount) {
+        elevatorRequests.clear();
+        for (int i = 0; i < floorCount; ++i) {
+            EnumSet<ElevatorController.Direction> state = EnumSet.noneOf(ElevatorController.Direction.class);
+            elevatorRequests.add(state);
+        }
     }
 
     protected ArrayList<Elevator> getElevators() {
@@ -67,6 +97,7 @@ public class Simulation {
             gameObject.destroy();
         }
         this.zombies.clear();
+        elevatorRequests.clear();
     }
 
     protected double calcMinDstFromZombie(Vec2 pos) {

@@ -41,6 +41,8 @@ public class World extends JPanel implements ActionListener, MouseListener {
     public static final Vec2 ELEVATOR_DOORS_HALFDIMS = new Vec2(0.35, 0.45);
     public static final double ELEVATOR_SPACING = ELEVATOR_DOORS_HALFDIMS.x;
     public static final double ELEVATOR_LEFT_RIGHT_SPACE = 3.0;
+    public static final double ZOMBIE_WAITING_AREA_MAX_OFFSET = -0.75;  // Offset from ELEVATOR_LEFT_RIGHT_SPACE
+    public static final double BUTTON_UP_DOWN_OFFSET = -0.3;            // Offset from ELEVATOR_LEFT_RIGHT_SPACE
     public static final int RENDER_TIMER_PERIOD = 16;  // In milliseconds
 
     // Member variables...
@@ -136,7 +138,24 @@ public class World extends JPanel implements ActionListener, MouseListener {
             Draw.drawRect(g, Vec2.add(floorPosLL, floorHalfDims), floorHalfDims, 1, COLOR_FLOOR, Color.BLACK, floorHalfDims.y / 5, 0.05);
 		}
     }
+    private void drawElevatorUpDownButtons(Graphics2D g) {
+        int floorCount = Game.get().getFloorCount();
+        Color colorOff = new Color(100, 100, 100);
+        for (int i = 0; i < floorCount; i++) {
+            Vec2 posButtonCenter = new Vec2(ELEVATOR_LEFT_RIGHT_SPACE + BUTTON_UP_DOWN_OFFSET, FLOOR_HEIGHT * ((double)i + 0.4));
+            Vec2 posButtonUp = Vec2.add(posButtonCenter, Vec2.multiply(Vec2.up(), FLOOR_HEIGHT * 0.125));
+            Vec2 posButtonDown = Vec2.add(posButtonCenter, Vec2.multiply(Vec2.up(), FLOOR_HEIGHT * -0.125));
+            Vec2 halfDims = new Vec2(FLOOR_HEIGHT * 0.1, FLOOR_HEIGHT * 0.1);
+            Draw.drawRect(g, posButtonUp, halfDims, 1, Simulation.get().hasElevatorRequest(i, ElevatorController.Direction.Up) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
+            Draw.drawRect(g, posButtonDown, halfDims, 1, Simulation.get().hasElevatorRequest(i, ElevatorController.Direction.Down) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
+		}
+    }
     private void drawWorld(Graphics2D g) {
+        // Wait till we're actually inialized...
+        if (!Game.get().isInitialized()) {
+            return;
+        }
+
         // Setup...
         Draw.beginRender(g);
 
@@ -166,6 +185,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
             // Floors...
             if (pass == 1) {
                 drawFloors(g);
+                drawElevatorUpDownButtons(g);
             }
 
             // Elevators...

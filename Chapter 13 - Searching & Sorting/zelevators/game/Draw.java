@@ -111,6 +111,20 @@ public class Draw {
         // Draw it...
         g.drawImage(image, (int)(drawPosPixels.x - halfDimsPixels.x), (int)(drawPosPixels.y - halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), null);
     }
+    public static void drawImageRotated(Graphics2D g, BufferedImage image, Vec2 pos, Vec2 halfDims, double rotDeg, double scale) {
+        // Setup...
+        Vec2 drawPosPixels = Util.toPixels(pos);
+        Vec2 halfDimsPixels = Util.toPixelDims(Vec2.multiply(halfDims, scale));
+
+        // Transform...
+        AffineTransform transform = new AffineTransform();
+        transform.translate(drawPosPixels.x - halfDimsPixels.x, drawPosPixels.y - halfDimsPixels.y);
+        transform.rotate(Math.toRadians(rotDeg));
+        g.setTransform(transform);
+
+        // Draw it...
+        g.drawImage(image, 0, 0, (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), null);
+    }
     public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, FontSize fontSize, Color color) {
         drawTextCentered(g, text, pos, fontSize, color, null);
     }

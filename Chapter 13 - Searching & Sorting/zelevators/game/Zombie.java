@@ -12,7 +12,7 @@ public class Zombie extends GameObject {
     // Consts...
     public static final Vec2 NOMINAL_HALFDIMS = new Vec2(0.3, 0.48);
     public static final double VERTICAL_OFFSET = -0.035;
-    public static final double WALK_SPEED = 0.5;            // In units per second
+    public static final double WALK_SPEED = 1.0;            // In units per second
     public static final double STARVATION_TIME = 30;
 
     // Enums...
@@ -28,14 +28,17 @@ public class Zombie extends GameObject {
 
     // Private member variables...
     private State state = State.Entering;
-    private double currentFloor = 0.0;
+    private int currentFloor = -1;
     private int targetFloor = -1;
     private int onElevatorIdx = -1;
+    private double waitAreaOffset = World.ZOMBIE_WAITING_AREA_MAX_OFFSET;
+    private double walkCycleAnimT = 0;
+    private double walkSpeedScalar = 1.0;
     private BufferedImage image = null;
     private Vec2 halfDims = null;
 
     // Constructors...
-    public Zombie(double initialFloor) {
+    public Zombie(int initialFloor) {
         // Save off our params...
         state = State.Entering;
         currentFloor = initialFloor;
@@ -43,10 +46,12 @@ public class Zombie extends GameObject {
         // Init...
         halfDims = Vec2.multiply(NOMINAL_HALFDIMS, Util.randRange(0.9, 1.1));
         pos = new Vec2(halfDims.x * Util.randRange(0.75, 1.25), World.FLOOR_HEIGHT * currentFloor + halfDims.y + VERTICAL_OFFSET);
+        waitAreaOffset = World.ZOMBIE_WAITING_AREA_MAX_OFFSET * Util.randRange(0.75, 1.25);
+        walkSpeedScalar = Util.randRange(0.9, 1.1);
 
         // Figure out where we're going (random target floor)...
         targetFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 1);
-        targetFloor = (targetFloor < (int)currentFloor) ? targetFloor : (targetFloor + 1);
+        targetFloor = (targetFloor < currentFloor) ? targetFloor : (targetFloor + 1);
 
         // Texture...
         try {
@@ -61,7 +66,7 @@ public class Zombie extends GameObject {
     protected State getState() {
         return state;
     }
-    protected double getCurrentFloor() {
+    protected int getCurrentFloor() {
         return currentFloor;
     }
     protected boolean isOnElevator(int elevatorIdx) {
@@ -73,21 +78,27 @@ public class Zombie extends GameObject {
         // Super...
         super.update(deltaTime);
 
+        // Setup...
+        boolean isWalking = false;
+        double walkAnimSpeed = (walkCycleAnimT < 0.5) ? 0.6 : 1.0;
+
         // Per state update...
         switch (state) {
             case Entering : {
                 // Walk to the elevator...
-                pos.x = Math.min(pos.x + WALK_SPEED * deltaTime, World.ELEVATOR_LEFT_RIGHT_SPACE);
-                if (pos.x >= World.ELEVATOR_LEFT_RIGHT_SPACE) {
+                pos.x = Math.min(pos.x + WALK_SPEED * walkAnimSpeed * walkSpeedScalar * deltaTime, World.ELEVATOR_LEFT_RIGHT_SPACE + waitAreaOffset);
+                if (pos.x >= World.ELEVATOR_LEFT_RIGHT_SPACE + waitAreaOffset) {
                     state = State.Waiting;
+                    Simulation.get().addElevatorRequest(currentFloor, (targetFloor > currentFloor) ? ElevatorController.Direction.Up : ElevatorController.Direction.Down);
                 }
+                isWalking = true;
             } break;
             case Waiting : {
                 // Check for an open elevator...
                 ArrayList<Elevator> elevators = Simulation.get().getElevators();
                 for (int i = 0; i < elevators.size(); i++) {
                     Elevator elevator = elevators.get(i);
-                    if ((elevator.getCurrentFloor() == currentFloor) && elevator.canAcceptNewZombiePassenger()) {
+                    if ((elevator.getCurrentFloor() == (double)currentFloor) && elevator.canAcceptNewZombiePassenger()) {
                         // Make a run for it...
                         state = State.Boarding;
                     }
@@ -106,7 +117,7 @@ public class Zombie extends GameObject {
                 Elevator trgElevator = null;
                 for (int i = 0; i < elevators.size(); i++) {
                     Elevator elevator = elevators.get(i);
-                    if ((elevator.getCurrentFloor() == currentFloor) && elevator.canAcceptNewZombiePassenger()) {
+                    if ((elevator.getCurrentFloor() == (double)currentFloor) && elevator.canAcceptNewZombiePassenger()) {
                         trgElevator = elevator;
                         break;
                     }
@@ -116,10 +127,12 @@ public class Zombie extends GameObject {
                 if (trgElevator != null) {
                     double trgPosX = trgElevator.getPos().x;
                     if (trgPosX > pos.x) {
-                        pos.x = Math.min(pos.x + WALK_SPEED * deltaTime, trgPosX);
+                        pos.x = Math.min(pos.x + WALK_SPEED * walkAnimSpeed * walkSpeedScalar * deltaTime, trgPosX);
+                        isWalking = true;
                     }
                     else {
-                        pos.x = Math.max(pos.x - WALK_SPEED * deltaTime, trgPosX);
+                        pos.x = Math.max(pos.x - WALK_SPEED * walkAnimSpeed * walkSpeedScalar * deltaTime, trgPosX);
+                        isWalking = true;
                     }
                     if (pos.x == trgPosX) {
                         // Pop, we're on...
@@ -129,17 +142,18 @@ public class Zombie extends GameObject {
                 }
                 else {
                     // Walk back (sad)...
-                    double trgPosX = World.ELEVATOR_LEFT_RIGHT_SPACE;
-                    pos.x = Math.max(pos.x - WALK_SPEED * deltaTime, trgPosX);
+                    double trgPosX = World.ELEVATOR_LEFT_RIGHT_SPACE + waitAreaOffset;
+                    pos.x = Math.max(pos.x - WALK_SPEED * walkAnimSpeed * walkSpeedScalar * deltaTime, trgPosX);
                     if (pos.x <= trgPosX) {
                         state = State.Waiting;
                     }
+                    isWalking = true;
                 }
             } break;
             case OnElevator : {
                 // Wait till we're at our target floor and the doors are open...
                 Elevator elevator = Simulation.get().getElevators().get(onElevatorIdx);
-                if ((elevator.getCurrentFloor() == targetFloor) && elevator.getAreDoorsOpen()) {
+                if ((elevator.getCurrentFloor() == (double)targetFloor) && elevator.getAreDoorsOpen()) {
                     // We're here, get of...
                     state = State.WalkingOff;
                     onElevatorIdx = -1;
@@ -153,6 +167,7 @@ public class Zombie extends GameObject {
                     this.timeTillDeath = Math.max(this.timeTillDeath, 0.0001);
                     state = State.Delivered;
                 }
+                isWalking = true;
             } break;
             case Delivered : {
                 // Nothing to do here but wait...
@@ -160,6 +175,23 @@ public class Zombie extends GameObject {
             case Starved : {
                 // Nothing to do here, just wait for the cold embrace of death...
             } break;
+        }
+
+        // Update walkCycleAnimT...
+        if (isWalking) {
+            walkCycleAnimT += deltaTime * 2.0;
+            if (walkCycleAnimT >= 1.0) {
+                walkCycleAnimT -= 1.0;
+            }
+        }
+        else {
+            // Go back to zero...
+            if (walkCycleAnimT != 0.0) {
+                walkCycleAnimT += deltaTime * 4.0;
+                if (walkCycleAnimT >= 1.0) {
+                    walkCycleAnimT = 0.0;
+                }
+            }
         }
     }
 
@@ -169,7 +201,9 @@ public class Zombie extends GameObject {
     }
     protected void draw(Graphics2D g) {
         if (image != null) {
-            Draw.drawImage(g, image, pos, halfDims, calcDrawScale());
+            double rotDegMidPt = 0.7;
+            double rotDegT = (walkCycleAnimT < rotDegMidPt) ? (walkCycleAnimT / rotDegMidPt) : ((1.0 - (walkCycleAnimT - rotDegMidPt) / (1 - rotDegMidPt)) * rotDegMidPt);
+            Draw.drawImageRotated(g, image, pos, halfDims, rotDegT * -10, calcDrawScale());
         }
     }
 }

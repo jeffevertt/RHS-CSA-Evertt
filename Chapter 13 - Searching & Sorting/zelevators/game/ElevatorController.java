@@ -6,6 +6,7 @@ package game;
 public interface ElevatorController {
     // Enums
     public enum Direction {
+        None,
         Up,
         Down
     }
@@ -22,6 +23,9 @@ public interface ElevatorController {
     // Event: Called when the elevator has reached a floor, has its doors open, and zombie 'transations' are complete.
     //  This is called after, all Zombies have had time to enter/exit the elevator.
     public void onElevatorIdle(int elevatorIdx);
+    
+    // Event: Called each frame of the simulation (i.e. called continuously)
+    public void onUpdate(double deltaTime);
 
     // Command: Tell an elevator to go to a floor and open its doors, allowing zombies to enter/exit at that floor.
     //  Note that arriving at and leaving a floor will clear internal elevator requests (both internal and external)
@@ -30,7 +34,4 @@ public interface ElevatorController {
         // todo...
         return true;
     }
-
-    // Event: Called each frame of the simulation (i.e. called continuously)
-    public void update(double deltaTime);
 }

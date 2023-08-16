@@ -24,6 +24,6 @@ public class MyElevatorController implements ElevatorController {
     }
 
     // Event: Called each frame of the simulation (i.e. called continuously)
-    public void update(double deltaTime) {
+    public void onUpdate(double deltaTime) {
     }
 }
