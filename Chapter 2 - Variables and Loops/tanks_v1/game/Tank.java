@@ -142,6 +142,9 @@ public class Tank extends GameObject {
 	protected UIStats getUIStats() {
 		return uiStats;
 	}
+	protected TankAIBase getAI() {
+		return ai;
+	}
 	
 	// Member functions (methods)...
     protected Tank(int playerIdx, Vec2 pos, Vec2 dir) {

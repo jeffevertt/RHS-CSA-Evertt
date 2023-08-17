@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import javax.swing.Timer;
 
 import ai.OtherAI;
@@ -264,7 +270,41 @@ public class Game implements ActionListener {
 
     public void actionPerformed(ActionEvent evt) {
         Game.get().update();
-    } 
+    }
+
+    protected void postScoreToLeaderboard(int period, String name, int score) {
+        try {
+            // Data...Example payload: {'TableName':'classLeaderboardTable','EventType':'postLeaderboardStudent','Item':{'periodKey':'1','StudentName':'testName','score':'10'}}
+            String jsonPayload = "{\"TableName\":\"classLeaderboardTable\",\"EventType\":\"postLeaderboardStudent\",\"Item\":{\"periodKey\":\"" + period + "\",\"StudentName\":\"" + name + "\",\"score\":\"" + score + "\"}}";
+
+            // Do the POST request...
+            URL url = new URL( "https://u9m0v5iwsk.execute-api.us-west-2.amazonaws.com/default/classBuzzer" );
+            HttpURLConnection conn= (HttpURLConnection) url.openConnection();           
+            conn.setDoOutput( true );
+            conn.setInstanceFollowRedirects( false );
+            conn.setRequestMethod( "POST" );
+            conn.setRequestProperty( "Accept", "application/json"); 
+            conn.setRequestProperty( "Content-Type", "application/json"); 
+            conn.setRequestProperty( "charset", "utf-8");
+            conn.setUseCaches( false );
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes("utf-8");
+                os.write(input, 0, input.length);			
+            }
+
+            // Response..
+            try (BufferedReader br = new BufferedReader( new InputStreamReader(conn.getInputStream(), "utf-8") )) {
+                StringBuilder response = new StringBuilder();
+                String responseLine = null;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                System.out.println("Leaderboard post - " + response.toString());
+            }
+        } catch (Exception e) {
+            System.out.println("Leaderboard post failed - " + e.toString());
+        }
+    }
 
     protected void update() {
         // Step the sim...
@@ -274,6 +314,9 @@ public class Game implements ActionListener {
         
         // Clamp deltaTime (slow down the sim, if needed)...
         deltaTime = Math.min(deltaTime, 0.1);
+        if (gameStats.timeRemaining == 0) {
+            deltaTime = 0;
+        }
 
         // Deal with pause...
         if (isGamePaused()) {
@@ -293,11 +336,24 @@ public class Game implements ActionListener {
         Simulation.get().cullNotInField();
         
         // Update levelTime...
+        double prevTimeRemaining = gameStats.timeRemaining;
         gameStats.timeRemaining = Math.max(gameStats.timeRemaining - deltaTime, 0);
         if (gameStats.timeRemaining == 0) {
+            // Cancel all commands...
             for (int i = 0; i < gameStats.playerCount; ++i) {
                 Tank tank = getTank(i);
                 tank.cancelAllCommands();
+            }
+
+            // Post your score to the leaderboard...
+            if (((prevTimeRemaining > 0) && (gameStats.timeRemaining == 0)) && (gameStats.playerCount == 1)) {
+                Tank tank = getTank(0);
+                TankAIBase ai = tank.getAI();
+                int period = ai.getPlayerPeriod();
+                if ((period >= 1) && (period <= 7) && !ai.getPlayerName().equals(TankAIBase.DEFAULT_PLAYER_NAME)) {
+                    // Go ahead and post it...
+                    postScoreToLeaderboard(period, ai.getPlayerName(), gameStats.levelScore);
+                }
             }
         }
     }

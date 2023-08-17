@@ -9,9 +9,12 @@ public abstract class TankAIBase {
 	// Member variables
 	protected Tank tank;
 
-    // Override this function, to specify your name
+    // Override these function, to specify your name & period
     public String getPlayerName() {
         return DEFAULT_PLAYER_NAME;
+    }
+    public int getPlayerPeriod() {
+        return -1;
     }
 
 	// Accessors
