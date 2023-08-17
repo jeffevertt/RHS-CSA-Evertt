@@ -9,8 +9,6 @@ import game.ElevatorController.Direction;
 
 public class Game implements ActionListener {
     // Constants...
-    public static final int STARTING_LEVEL_TIME     = 90;
-
     public static final int POINTS_ELEVATOR_FLOOR   = -1;   // When the elevator move from one floor to another (cost)
     public static final int POINTS_ELEVATOR_COMMAND = -1;   // Each command issued to the elevator (cost)
     public static final int POINTS_ZOMBIE_DELIVERED = 50;
@@ -24,12 +22,16 @@ public class Game implements ActionListener {
     protected class GameStats {
         public boolean isPaused = false;
         public double timeRemaining = 0;
+        public int gameTimeInSecondsMax;
         public int levelScore = 0;
+        public double timeSinceSpawnedZombie = 100000.0;
 
-        public void reset() {
+        public void reset(int gameTimeInSeconds) {
             isPaused = false;
-            timeRemaining = STARTING_LEVEL_TIME;
+            timeRemaining = gameTimeInSeconds;
+            gameTimeInSecondsMax = gameTimeInSeconds;
             levelScore = 0;
+            timeSinceSpawnedZombie = 100000.0;
         }
     }
 
@@ -53,7 +55,7 @@ public class Game implements ActionListener {
         return gameStats.timeRemaining;
     }
     public int getLevelTimeMax() {
-        return STARTING_LEVEL_TIME;
+        return gameStats.gameTimeInSecondsMax;
     }
     public int getElevatorCount() {
         return (gameConfig == null) ? -1 : gameConfig.elevatorCount;
@@ -61,6 +63,12 @@ public class Game implements ActionListener {
     public int getFloorCount() {
         return (gameConfig == null) ? -1 : gameConfig.floorCount;
     }
+    public void setElevatorTravelDirection(int elevatorIdx, ElevatorController.Direction travelDirection) {
+        Simulation.get().setElevatorTravelDirection(elevatorIdx, travelDirection);
+    }
+    public ElevatorController.Direction getElevatorTravelDirection(int elevatorIdx) {
+        return Simulation.get().getElevatorTravelDirection(elevatorIdx);
+    }    
     public boolean hasElevatorRequestUp(int floorIdx) {
         return Simulation.get().hasElevatorRequest(floorIdx, Direction.Up);
     }
@@ -69,6 +77,9 @@ public class Game implements ActionListener {
     }
     public boolean elevatorHasFloorRequest(int elevatorIdx, int floorIdx) {
         return Simulation.get().elevatorHasFloorRequest(elevatorIdx, floorIdx);
+    }
+    public double getElevatorFloor(int elevatorIdx) {
+        return Simulation.get().getElevatorFloor(elevatorIdx);
     }
     public boolean isElevatorIsOnFloor(int elevatorIdx, int floorIdx) {
         return Simulation.get().isElevatorIsOnFloor(elevatorIdx, floorIdx);
@@ -137,7 +148,7 @@ public class Game implements ActionListener {
 
     protected void onLevelSetup() {
         // Default time for level...
-        gameStats.reset();
+        gameStats.reset(gameConfig.gameTimeInSeconds);
 
         // Reset the simulation...
         Simulation.get().destroyAll();
@@ -150,6 +161,7 @@ public class Game implements ActionListener {
         // Zombies (initial set of them)...
         for (int i = 0; i < gameConfig.floorCount / 2; ++i) {
             Simulation.get().createZombie(Util.randRangeInt(0, Game.get().getFloorCount() - 1));
+            gameStats.timeSinceSpawnedZombie = 0.0f;
         }
 
         // Elevator requests...
@@ -169,6 +181,13 @@ public class Game implements ActionListener {
                 elevatorController.onGameStarted(this);
             }
             elevatorController.onUpdate(deltaTime);
+        }
+
+        // Possibly spawn new zombies...
+        gameStats.timeSinceSpawnedZombie += deltaTime;
+        if (gameStats.timeSinceSpawnedZombie >= gameConfig.zombieSpawnPeriod) {
+            Simulation.get().createZombie(Util.randRangeInt(0, Game.get().getFloorCount() - 1));
+            gameStats.timeSinceSpawnedZombie -= gameConfig.zombieSpawnPeriod;
         }
     }
     private boolean updateElevatorController(double deltaTime) {
@@ -254,8 +273,8 @@ public class Game implements ActionListener {
             Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(), 0.5);
             String finalText = ("Final Score: " + gameStats.levelScore);
             Color textColor = Color.BLUE;
-            Color bckGndColor = Color.LIGHT_GRAY;
-            Draw.drawRect(g, finalTextPos, new Vec2(7.5, 1), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
+            Color bckGndColor = new Color(230, 230, 230);
+            Draw.drawRect(g, finalTextPos, new Vec2(3.5, 0.5), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
             Draw.drawTextCentered(g, finalText, finalTextPos, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
         }
     }

@@ -18,10 +18,15 @@ public interface ElevatorController {
     public void onGameStarted(Game game);
 
     // Event: "outside-the-elevator" request, requesting an elevator.
-    public void onElevatorRequest(int floorIdx, Direction dir); 
+    //  The event will be triggered with the request is created/enabled & when it is cleared (reqEnable indicates which).
+    public void onElevatorRequestChanged(int floorIdx, Direction dir, boolean reqEnable); 
 
     // Event: "inside-the-elevator" request, requesting to go to a floor.
-    public void onFloorRequest(int elevatorIdx, int floorIdx);
+    //  The event will be triggered with the request is created/enabled & when it is cleared (reqEnable indicates which).
+    public void onFloorRequestChanged(int elevatorIdx, int floorIdx, boolean reqEnable);
+
+    // Event: Elevator has arrived at the floor & doors are open.
+    public void onElevatorArrivedAtFloor(int elevatorIdx, int floorIdx, Direction travelDirection);
 
     // Event: Called each frame of the simulation (i.e. called continuously)
     public void onUpdate(double deltaTime);

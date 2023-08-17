@@ -1,7 +1,19 @@
 package game;
 
 public class GameConfig {
-    public int floorCount = 10;
+    // Data
+    public int gameTimeInSeconds = 120;
+    public int floorCount = 8;
     public int elevatorCount = 2;
-    public double zombieSpawnPeriod = 1.0;      // Nominal spawn period for zombies
+    public double zombieSpawnPeriod = 2.0;      // Spawn period for zombies
+
+    // Constructor(s)
+    public GameConfig() {
+    }
+    public GameConfig(int gameTimeInSeconds, int floorCount, int elevatorCount, double zombieSpawnPeriod) {
+        this.gameTimeInSeconds = gameTimeInSeconds;
+        this.floorCount = floorCount;
+        this.elevatorCount = elevatorCount;
+        this.zombieSpawnPeriod = zombieSpawnPeriod;
+    }
 }

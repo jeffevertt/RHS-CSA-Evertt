@@ -32,16 +32,27 @@ public class Simulation {
         if ((floorIdx < 0) || (floorIdx >= elevatorRequests.size())) {
             return;
         }
+        if (elevatorRequests.get(floorIdx).contains(direction)) {
+            return;
+        }
+
+        // Set it...
         elevatorRequests.get(floorIdx).add(direction);
 
         // Event...
-        Game.get().getElevatorController().onElevatorRequest(floorIdx, direction);
+        Game.get().getElevatorController().onElevatorRequestChanged(floorIdx, direction, true);
     }
     protected void remElevatorRequest(int floorIdx, ElevatorController.Direction direction) {
         if ((floorIdx < 0) || (floorIdx >= elevatorRequests.size())) {
             return;
         }
+        if (!elevatorRequests.get(floorIdx).contains(direction)) {
+            return;
+        }
         elevatorRequests.get(floorIdx).remove(direction);
+
+        // Event...
+        Game.get().getElevatorController().onElevatorRequestChanged(floorIdx, direction, false);
     }
     protected boolean elevatorHasFloorRequest(int elevatorIdx, int floorIdx) {
         if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
@@ -49,6 +60,20 @@ public class Simulation {
         }
         Elevator elevator = elevators.get(elevatorIdx);
         return elevator.hasRequestForFloor(floorIdx);
+    }
+    protected void setElevatorTravelDirection(int elevatorIdx, ElevatorController.Direction direction) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        elevator.setTravelDirection(direction);
+    }
+    protected ElevatorController.Direction getElevatorTravelDirection(int elevatorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return ElevatorController.Direction.None;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        return elevator.getTravelDirection();
     }
     protected boolean anyZombiesGettingOnElevator(Elevator elevator) {
         for (int i = 0; i < zombies.size(); ++i) {
@@ -58,6 +83,13 @@ public class Simulation {
             }
         }
         return false;
+    }
+    protected double getElevatorFloor(int elevatorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return -1;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        return elevator.getCurrentFloor();
     }
     protected boolean isElevatorIsOnFloor(int elevatorIdx, int floorIdx) {
         if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {

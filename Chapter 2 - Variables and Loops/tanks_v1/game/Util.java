@@ -7,7 +7,7 @@ public class Util {
     public static double clamp(double x, double min, double max) {
 	    return Math.max(min, Math.min(x, max));
     }
-    public static float lerp(float a, float b, float t) {
+    public static double lerp(double a, double b, double t) {
         return (a + (b - a)* t);
     }
     public static double sinDeg(double x) {

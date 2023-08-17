@@ -13,7 +13,7 @@ public class Zombie extends GameObject {
     public static final Vec2 NOMINAL_HALFDIMS = new Vec2(0.3, 0.48);
     public static final double VERTICAL_OFFSET = -0.035;
     public static final double WALK_SPEED = 1.0;            // In units per second
-    public static final double STARVATION_TIME = 30;
+    public static final double STARVATION_TIME = 40;
 
     // Enums...
     protected enum State {
@@ -34,6 +34,7 @@ public class Zombie extends GameObject {
     private double waitAreaOffset = World.ZOMBIE_WAITING_AREA_MAX_OFFSET;
     private double walkCycleAnimT = 0;
     private double walkSpeedScalar = 1.0;
+    private double timeSinceStarved = 0.0;
     private BufferedImage image = null;
     private Vec2 halfDims = null;
 
@@ -44,7 +45,7 @@ public class Zombie extends GameObject {
         currentFloor = initialFloor;
 
         // Init...
-        halfDims = Vec2.multiply(NOMINAL_HALFDIMS, Util.randRange(0.9, 1.1));
+        halfDims = Vec2.multiply(NOMINAL_HALFDIMS, Util.randRange(0.9, 1.0));
         pos = new Vec2(halfDims.x * Util.randRange(0.75, 1.25), World.FLOOR_HEIGHT * currentFloor + halfDims.y + VERTICAL_OFFSET);
         waitAreaOffset = World.ZOMBIE_WAITING_AREA_MAX_OFFSET * Util.randRange(0.75, 1.25);
         walkSpeedScalar = Util.randRange(0.9, 1.1);
@@ -69,10 +70,11 @@ public class Zombie extends GameObject {
     protected int getCurrentFloor() {
         return currentFloor;
     }
+    protected int getTargetFloor() {
+        return targetFloor;
+    }
     protected boolean isGettingOnElevator(Elevator elevator) {
-        return elevator.canAcceptNewZombiePassenger() && 
-               ((int)elevator.getCurrentFloor() == currentFloor) && 
-               ((state == State.Waiting) || (state == State.Boarding));
+        return elevator.canAcceptNewZombiePassenger(this) && ((state == State.Waiting) || (state == State.Boarding));
     }
     protected boolean isOnAnElevator() {
         return (state == State.OnElevator);
@@ -107,8 +109,8 @@ public class Zombie extends GameObject {
                 ArrayList<Elevator> elevators = Simulation.get().getElevators();
                 for (int i = 0; i < elevators.size(); i++) {
                     Elevator elevator = elevators.get(i);
-                    if ((elevator.getCurrentFloor() == (double)currentFloor) && elevator.canAcceptNewZombiePassenger()) {
-                        // Make a run for it...
+                    if (elevator.canAcceptNewZombiePassenger(this)) {
+                        // Looks good, make a run for it...
                         state = State.Boarding;
                     }
                 }
@@ -120,10 +122,11 @@ public class Zombie extends GameObject {
                     Simulation.get().addElevatorRequest(currentFloor, (targetFloor > currentFloor) ? ElevatorController.Direction.Up : ElevatorController.Direction.Down);
                 }
 
-                // Check to see if we've starved (can only happen in the waiting state)
+                // Check to see if we've starved (can in waiting)
                 if (timeSinceBorn >= STARVATION_TIME) {
                     // Zombie: Starved!
                     Game.get().awardPoints(Game.POINTS_ZOMBIE_STARVED);
+                    timeSinceStarved = 0.0;
                     state = State.Starved;
                 }
             } break;
@@ -133,7 +136,7 @@ public class Zombie extends GameObject {
                 Elevator trgElevator = null;
                 for (int i = 0; i < elevators.size(); i++) {
                     Elevator elevator = elevators.get(i);
-                    if ((elevator.getCurrentFloor() == (double)currentFloor) && elevator.canAcceptNewZombiePassenger()) {
+                    if (elevator.canAcceptNewZombiePassenger(this)) {
                         trgElevator = elevator;
                         break;
                     }
@@ -192,12 +195,26 @@ public class Zombie extends GameObject {
                     state = State.Delivered;
                 }
                 isWalking = true;
+
+                // Check to see if we've starved (can in waiting)
+                if ((state == State.WalkingOff) && (timeSinceBorn >= STARVATION_TIME)) {
+                    // Zombie: Starved!
+                    Game.get().awardPoints(Game.POINTS_ZOMBIE_STARVED);
+                    timeSinceStarved = 0.0;
+                    state = State.Starved;
+                }
             } break;
             case Delivered : {
                 // Nothing to do here but wait...
             } break;
             case Starved : {
-                // Nothing to do here, just wait for the cold embrace of death...
+                // Timer (keep out the starved for a while)...
+                timeSinceStarved += deltaTime;
+
+                // Make sure we're dying, then just wait for the cold embrace of death...
+                if (timeSinceStarved >= 10) {
+                    this.timeTillDeath = Math.max(this.timeTillDeath, 0.0001);
+                }
             } break;
         }
 
@@ -232,9 +249,11 @@ public class Zombie extends GameObject {
         if (image != null) {
             double rotDegMidPt = 0.7;
             double rotDegT = (walkCycleAnimT < rotDegMidPt) ? (walkCycleAnimT / rotDegMidPt) : ((1.0 - (walkCycleAnimT - rotDegMidPt) / (1 - rotDegMidPt)) * rotDegMidPt);
+            double starveAnimT = Math.min(timeSinceStarved * 3.0, 1);
+            double rotDeg = Util.lerp(rotDegT * -10, -90, starveAnimT);
             double scale = calcDrawScale();
-            Vec2 posDraw = Vec2.subtract(pos, Vec2.multiply(new Vec2(0, halfDims.y), 1 - scale));
-            Draw.drawImageRotated(g, image, posDraw, halfDims, rotDegT * -10, scale);
+            Vec2 posDraw = Vec2.subtract(Vec2.subtract(pos, Vec2.multiply(new Vec2(0, halfDims.y), 1 - scale)), Vec2.multiply(new Vec2(halfDims.x * 1.25, halfDims.y * 2.05), starveAnimT * scale));
+            Draw.drawImageRotated(g, image, posDraw, halfDims, rotDeg, scale);
         }
     }
 }

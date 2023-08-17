@@ -18,15 +18,26 @@ public class MyElevatorController implements ElevatorController {
     }
 
     // Event: "outside-the-elevator" request, requesting an elevator.
-    public void onElevatorRequest(int floorIdx, Direction dir) {
-        System.out.println("onElevatorRequest(" + floorIdx + ", " + floorIdx + ")");
+    //  The event will be triggered with the request is created/enabled & when it is cleared (reqEnable indicates which).
+    public void onElevatorRequestChanged(int floorIdx, Direction dir, boolean reqEnable) {
+        System.out.println("onElevatorRequestChanged(" + floorIdx + ", " + dir + ", " + reqEnable + ")");
 
         // TODO
+
     }
 
     // Event: "inside-the-elevator" request, requesting to go to a floor.
-    public void onFloorRequest(int elevatorIdx, int floorIdx) {
-        System.out.println("onFloorRequest(" + elevatorIdx + ", " + floorIdx + ")");
+    //  The event will be triggered with the request is created/enabled & when it is cleared (reqEnable indicates which).
+    public void onFloorRequestChanged(int elevatorIdx, int floorIdx, boolean reqEnable) {
+        System.out.println("onFloorRequesteChanged(" + elevatorIdx + ", " + floorIdx + ", " + reqEnable + ")");
+
+        // TODO
+
+    }
+
+    // Event: Elevator has arrived at the floor & doors are open.
+    public void onElevatorArrivedAtFloor(int elevatorIdx, int floorIdx, Direction travelDirection) {
+        System.out.println("onElevatorArrivedAtFloor(" + elevatorIdx + ", " + floorIdx + ", " + travelDirection + ")");
 
         // TODO
     }

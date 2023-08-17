@@ -156,16 +156,17 @@ public class World extends JPanel implements ActionListener, MouseListener {
         g.setColor(COLOR_FLOOR);
         int elevatorCount = Game.get().getElevatorCount();
         int floorCount = Game.get().getFloorCount();
-        int numCols = Math.max(floorCount / 3, 1);
+        int numCols = floorCount > 8 ? 3 : 2;
         int numRows = (floorCount / numCols) + ((floorCount % numCols != 0) ? 1 : 0);
+        double columSpacing = (numCols == 2) ? (ELEVATOR_DOORS_HALFDIMS.x * 0.4) : (ELEVATOR_DOORS_HALFDIMS.x * 0.3);
         Color colorOff = new Color(100, 100, 100);
         for (int i = 0; i < elevatorCount; i++) {
-            double widthSqueeze = 0.25;
-            Vec2 floorPosLL = new Vec2(ELEVATOR_LEFT_RIGHT_SPACE + (ELEVATOR_DOORS_HALFDIMS.x * 2.0) * i + ELEVATOR_SPACING * i + ELEVATOR_DOORS_HALFDIMS.x * widthSqueeze, (double)floorCount * FLOOR_HEIGHT + 0.1 * FLOOR_HEIGHT);
-            Vec2 floorPosUR = new Vec2(floorPosLL.x + (ELEVATOR_DOORS_HALFDIMS.x * 2.0) - ELEVATOR_DOORS_HALFDIMS.x * widthSqueeze * 2, floorPosLL.y + 0.85 * FLOOR_HEIGHT);
+            // Buttons...
+            Vec2 floorPosLL = new Vec2(ELEVATOR_LEFT_RIGHT_SPACE + (ELEVATOR_DOORS_HALFDIMS.x * 2.0) * i + ELEVATOR_SPACING * i + ELEVATOR_DOORS_HALFDIMS.x * 1.05 - columSpacing * numCols / 2, (double)floorCount * FLOOR_HEIGHT + 0.05 * FLOOR_HEIGHT);
+            Vec2 floorPosUR = new Vec2(floorPosLL.x + columSpacing * numCols, floorPosLL.y + 0.85 * FLOOR_HEIGHT);
             double rowSpace = (floorPosUR.y - floorPosLL.y) / numRows;
             double colSpace = (floorPosUR.x - floorPosLL.x) / Math.max(numCols - 1, 1);
-            double btnRadius = Math.min(rowSpace, colSpace) * 0.45;
+            double btnRadius = Math.min(Math.min(rowSpace, colSpace), 0.2) * 0.45;
             for (int r = 0; r < numRows; ++r) {
                 for (int c = 0; c < numCols; ++c) {
                     int floorIdx = r * numCols + c;
@@ -175,6 +176,10 @@ public class World extends JPanel implements ActionListener, MouseListener {
                     }
                 }
             }
+
+            // Current floor...
+            Vec2 textPos = new Vec2(ELEVATOR_LEFT_RIGHT_SPACE + (ELEVATOR_DOORS_HALFDIMS.x * 2.0) * i + ELEVATOR_SPACING * i + ELEVATOR_DOORS_HALFDIMS.x, (double)floorCount * FLOOR_HEIGHT + 0.1 * FLOOR_HEIGHT + btnRadius * 2 + rowSpace * (numRows - 1));
+            Draw.drawTextCentered(g, "" + (int)(Simulation.get().getElevator(i).getCurrentFloor() + 1), textPos, Draw.fontSizeFromScale(0.25), new Color(255, 140, 20), Color.BLACK);
 		}
     }
     private void drawWorld(Graphics2D g) {

@@ -8,7 +8,7 @@ import game.ElevatorController.Direction;
 
 public class Elevator extends GameObject {
     // Consts...
-    public static final double TRAVEL_VELOCITY = 3.0;       // Units are floors per second
+    public static final double TRAVEL_VELOCITY = 2.0;       // Units are floors per second
     public static final double DOOR_OPEN_VELOCITY = 2.0;    // Fully open/close in 1/DOOR_OPEN_VELOCITY seconds
     public static final int MAX_CAPACITY = 8;               // Maximum number of zombies it can hold
 
@@ -17,6 +17,7 @@ public class Elevator extends GameObject {
     private double currentFloor = 0.0;
     private int targetFloor = 0;
     private double doorClosePerc = 1.0;
+    private ElevatorController.Direction travelDirection = ElevatorController.Direction.None; // None == Either/Any-Which-Way
     private boolean floorRequests[] = null;     // Indexed by the floor index (zero based, like everything else)
 
     // Constructors...
@@ -28,6 +29,7 @@ public class Elevator extends GameObject {
         // Init...
         this.doorClosePerc = 1.0;
         this.pos = getPos();
+        this.travelDirection = ElevatorController.Direction.None;
         this.floorRequests = new boolean[floorCount];
     }
 
@@ -57,6 +59,12 @@ public class Elevator extends GameObject {
     protected void setTargetFloor(int targetFloor) {
         this.targetFloor = targetFloor;
     }
+    protected ElevatorController.Direction getTravelDirection() {
+        return travelDirection;
+    }
+    protected void setTravelDirection(ElevatorController.Direction direction) {
+        travelDirection = direction;
+    }
     protected double getDoorClosedPercent() {
         return doorClosePerc;
     }
@@ -74,19 +82,27 @@ public class Elevator extends GameObject {
         }
         return count;
     }
-    protected boolean canAcceptNewZombiePassenger() {
-        return getAreDoorsOpen() && (getNumberOfZombiesOnElevator() < MAX_CAPACITY);
+    protected boolean canAcceptNewZombiePassenger(Zombie zombie) {
+        return getAreDoorsOpen() && 
+               (getCurrentFloor() == (double)zombie.getCurrentFloor()) && 
+               (getNumberOfZombiesOnElevator() < MAX_CAPACITY) &&
+               ((travelDirection == ElevatorController.Direction.None) || 
+                ((travelDirection == ElevatorController.Direction.Up) && (zombie.getTargetFloor() > zombie.getCurrentFloor())) ||
+                ((travelDirection == ElevatorController.Direction.Down) && (zombie.getTargetFloor() < zombie.getCurrentFloor())));
     }
     protected boolean requestFloor(int floorIdx) {
         if ((floorIdx < 0) || (floorIdx >= floorRequests.length)) {
             return false;
+        }
+        if (floorRequests[floorIdx] == true) {
+            return true;
         }
 
         // Track it...
         floorRequests[floorIdx] = true;
         
         // Event...
-        Game.get().getElevatorController().onFloorRequest(elevatorIdx, floorIdx);
+        Game.get().getElevatorController().onFloorRequestChanged(elevatorIdx, floorIdx, true);
 
         return true;
     }
@@ -94,9 +110,15 @@ public class Elevator extends GameObject {
         if ((floorIdx < 0) || (floorIdx >= floorRequests.length)) {
             return;
         }
+        if (floorRequests[floorIdx] == false) {
+            return;
+        }
 
         // Track it...
         floorRequests[floorIdx] = false;
+
+        // Event...
+        Game.get().getElevatorController().onFloorRequestChanged(elevatorIdx, floorIdx, false);
     }
     protected boolean hasRequestForFloor(int floorIdx) {
         if ((floorIdx < 0) || (floorIdx >= floorRequests.length)) {
@@ -135,7 +157,16 @@ public class Elevator extends GameObject {
 
                 // Check for closed, if so clear the floor reqest...
                 if (doorClosePerc == 1.0) {
-                    Simulation.get().remElevatorRequest((int)currentFloor, (targetFloor < currentFloor) ? Direction.Down : Direction.Up);
+                    // Remove any "outside" requests...
+                    if ((travelDirection == ElevatorController.Direction.Up) || (travelDirection == ElevatorController.Direction.None)) {
+                        Simulation.get().remElevatorRequest((int)currentFloor, Direction.Up);
+                    }
+                    if ((travelDirection == ElevatorController.Direction.Down) || (travelDirection == ElevatorController.Direction.None)) {
+                        Simulation.get().remElevatorRequest((int)currentFloor, Direction.Down);
+                    }
+
+                    // Do the controller callback...
+                    Game.get().getElevatorController().onElevatorArrivedAtFloor(elevatorIdx, (int)currentFloor, travelDirection);
                 }
             }
         }
