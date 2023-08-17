@@ -42,7 +42,7 @@ public class GameObject {
     }
 
     protected double calcDrawScale() {
-		return Math.max(1.0 - this.timeTillDeath, 0.001);
+		return Math.max(1.0 - this.timeTillDeath, 0.001) * Math.min(timeSinceBorn * 2, 1);
 	}
 
     protected void drawShadow(Graphics2D g) {

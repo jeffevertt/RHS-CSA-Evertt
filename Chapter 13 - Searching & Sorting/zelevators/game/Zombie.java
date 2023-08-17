@@ -50,7 +50,7 @@ public class Zombie extends GameObject {
         walkSpeedScalar = Util.randRange(0.9, 1.1);
 
         // Figure out where we're going (random target floor)...
-        targetFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 1);
+        targetFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 2);
         targetFloor = (targetFloor < currentFloor) ? targetFloor : (targetFloor + 1);
 
         // Texture...
@@ -70,7 +70,9 @@ public class Zombie extends GameObject {
         return currentFloor;
     }
     protected boolean isGettingOnElevator(Elevator elevator) {
-        return ((state == State.Boarding) && elevator.getAreDoorsOpen() && ((int)elevator.getCurrentFloor() == currentFloor));
+        return elevator.canAcceptNewZombiePassenger() && 
+               ((int)elevator.getCurrentFloor() == currentFloor) && 
+               ((state == State.Waiting) || (state == State.Boarding));
     }
     protected boolean isOnAnElevator() {
         return (state == State.OnElevator);
@@ -92,7 +94,8 @@ public class Zombie extends GameObject {
         switch (state) {
             case Entering : {
                 // Walk to the elevator...
-                pos.x = Math.min(pos.x + WALK_SPEED * walkAnimSpeed * walkSpeedScalar * deltaTime, World.ELEVATOR_LEFT_RIGHT_SPACE + waitAreaOffset);
+                double walkSpeed = (timeSinceBorn < 0.5) ? 0 : (WALK_SPEED * walkAnimSpeed * walkSpeedScalar);
+                pos.x = Math.min(pos.x + walkSpeed * deltaTime, World.ELEVATOR_LEFT_RIGHT_SPACE + waitAreaOffset);
                 if (pos.x >= World.ELEVATOR_LEFT_RIGHT_SPACE + waitAreaOffset) {
                     state = State.Waiting;
                     Simulation.get().addElevatorRequest(currentFloor, (targetFloor > currentFloor) ? ElevatorController.Direction.Up : ElevatorController.Direction.Down);
@@ -108,6 +111,13 @@ public class Zombie extends GameObject {
                         // Make a run for it...
                         state = State.Boarding;
                     }
+                }
+
+                // Make sure our button is pressed...
+                if ((state == State.Waiting) &&
+                    !Simulation.get().hasElevatorRequest((int)currentFloor, (targetFloor > currentFloor) ? ElevatorController.Direction.Up : ElevatorController.Direction.Down)) {
+                    // Press it again...
+                    Simulation.get().addElevatorRequest(currentFloor, (targetFloor > currentFloor) ? ElevatorController.Direction.Up : ElevatorController.Direction.Down);
                 }
 
                 // Check to see if we've starved (can only happen in the waiting state)
@@ -222,8 +232,9 @@ public class Zombie extends GameObject {
         if (image != null) {
             double rotDegMidPt = 0.7;
             double rotDegT = (walkCycleAnimT < rotDegMidPt) ? (walkCycleAnimT / rotDegMidPt) : ((1.0 - (walkCycleAnimT - rotDegMidPt) / (1 - rotDegMidPt)) * rotDegMidPt);
-            Vec2 posDraw = Vec2.subtract(pos, Vec2.multiply(new Vec2(0, halfDims.y), timeTillDeath));
-            Draw.drawImageRotated(g, image, posDraw, halfDims, rotDegT * -10, calcDrawScale());
+            double scale = calcDrawScale();
+            Vec2 posDraw = Vec2.subtract(pos, Vec2.multiply(new Vec2(0, halfDims.y), 1 - scale));
+            Draw.drawImageRotated(g, image, posDraw, halfDims, rotDegT * -10, scale);
         }
     }
 }

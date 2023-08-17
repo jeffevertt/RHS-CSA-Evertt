@@ -4,13 +4,17 @@ import game.ElevatorController;
 import game.Game;
 
 public class MyElevatorController implements ElevatorController {
+    // Private member data
+    private Game game;
+
+    // Students should implement this function to return their name
     public String getStudentName() {
         return "<YOUR NAME>";   // <-- TODO: Replace with your name
     }
 
     // Event: Game has started
     public void onGameStarted(Game game) {
-        // TODO
+        this.game = game;
     }
 
     // Event: "outside-the-elevator" request, requesting an elevator.
@@ -27,15 +31,12 @@ public class MyElevatorController implements ElevatorController {
         // TODO
     }
 
-    // Event: Called when the elevator has reached a floor, has its doors open, and zombie 'transations' are complete.
-    //  This is called after, all Zombies have had time to enter/exit the elevator.
-    public void onElevatorIdle(int elevatorIdx) {
-        System.out.println("onElevatorIdle(" + elevatorIdx + ")");
-
-        // TODO
-    }
-
     // Event: Called each frame of the simulation (i.e. called continuously)
     public void onUpdate(double deltaTime) {
+        if (game == null) {
+            return;
+        }
+
+        // TODO
     }
 }

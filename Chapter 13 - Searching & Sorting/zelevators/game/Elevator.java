@@ -18,7 +18,6 @@ public class Elevator extends GameObject {
     private int targetFloor = 0;
     private double doorClosePerc = 1.0;
     private boolean floorRequests[] = null;     // Indexed by the floor index (zero based, like everything else)
-    private boolean hasDoneIdleEvent = false;
 
     // Constructors...
     public Elevator(int elevatorIdx, double initialFloor, int floorCount) {
@@ -30,7 +29,6 @@ public class Elevator extends GameObject {
         this.doorClosePerc = 1.0;
         this.pos = getPos();
         this.floorRequests = new boolean[floorCount];
-        this.hasDoneIdleEvent = false;
     }
 
     // Accessors...
@@ -92,6 +90,23 @@ public class Elevator extends GameObject {
 
         return true;
     }
+    protected void clearRequestForFloor(int floorIdx) {
+        if ((floorIdx < 0) || (floorIdx >= floorRequests.length)) {
+            return;
+        }
+
+        // Track it...
+        floorRequests[floorIdx] = false;
+    }
+    protected boolean hasRequestForFloor(int floorIdx) {
+        if ((floorIdx < 0) || (floorIdx >= floorRequests.length)) {
+            return false;
+        }
+        return floorRequests[floorIdx];
+    }
+    protected boolean isIdle() {
+        return (doorClosePerc == 0.0) && !Simulation.get().anyZombiesGettingOnElevator(this) && (currentFloor == (double)targetFloor);
+    }
 
     // Update...
     protected void update(double deltaTime) {
@@ -109,6 +124,11 @@ public class Elevator extends GameObject {
                 if ((deltaTime > 0.0) && ((int)currentFloor != (int)prevFloor)) {
                     Game.get().awardPoints(Game.POINTS_ELEVATOR_FLOOR);
                 }
+
+                // If we get there, clear the request...
+                if (currentFloor == targetFloor) {
+                    clearRequestForFloor((int)currentFloor);
+                }
             }
             else {
                 doorClosePerc = Math.min(doorClosePerc + DOOR_OPEN_VELOCITY * deltaTime, 1.0f);
@@ -118,22 +138,12 @@ public class Elevator extends GameObject {
                     Simulation.get().remElevatorRequest((int)currentFloor, (targetFloor < currentFloor) ? Direction.Down : Direction.Up);
                 }
             }
-
-            // Clear event flag...
-            hasDoneIdleEvent = false;
         }
         else {
             // Make sure the doors are open...
             if (doorClosePerc != 0.0) {
                 doorClosePerc = Math.max(doorClosePerc - DOOR_OPEN_VELOCITY * deltaTime, 0.0f);
             }
-
-            // Event...
-            if (!hasDoneIdleEvent && (doorClosePerc == 0.0) && !Simulation.get().anyZombiesGettingOnElevator(this)) {
-                // Doors are open, wait for anyone getting on...
-                Game.get().getElevatorController().onElevatorIdle(elevatorIdx);
-                hasDoneIdleEvent = true;
-            }                
         }
     }
 

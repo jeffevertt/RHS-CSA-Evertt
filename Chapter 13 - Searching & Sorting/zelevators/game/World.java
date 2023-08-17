@@ -69,7 +69,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
             public void componentResized(ComponentEvent componentEvent) {
                 // Set the origin and sizes (first, just figure out y)...
                 canvasSize = new Vec2(0, getHeight() - FIELD_BORDER_TOP);
-                pixelsPerUnit = Math.floor(canvasSize.y / Game.get().getFloorCount());
+                pixelsPerUnit = Math.floor(canvasSize.y / (Game.get().getFloorCount() + 1));    // Top row is used to show elevator buttons
                 origin = new Vec2(0, getHeight() - FIELD_BORDER_BOT);
 
                 // Now we can figure out the x part...
@@ -134,7 +134,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
         int floorCount = Game.get().getFloorCount();
         Vec2 floorHalfDims = new Vec2(Util.maxCoordFrameUnits().x / 2, 0.025);
 		for (int i = 0; i < floorCount; i++) {
-            Vec2 floorPosLL = new Vec2(0, (double)i - floorHalfDims.y);
+            Vec2 floorPosLL = new Vec2(0, (double)i * FLOOR_HEIGHT - floorHalfDims.y);
             Draw.drawRect(g, Vec2.add(floorPosLL, floorHalfDims), floorHalfDims, 1, COLOR_FLOOR, Color.BLACK, floorHalfDims.y / 5, 0.05);
 		}
     }
@@ -148,6 +148,33 @@ public class World extends JPanel implements ActionListener, MouseListener {
             Vec2 halfDims = new Vec2(FLOOR_HEIGHT * 0.1, FLOOR_HEIGHT * 0.1);
             Draw.drawRect(g, posButtonUp, halfDims, 1, Simulation.get().hasElevatorRequest(i, ElevatorController.Direction.Up) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
             Draw.drawRect(g, posButtonDown, halfDims, 1, Simulation.get().hasElevatorRequest(i, ElevatorController.Direction.Down) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
+		}
+    }
+    private void drawElevatorFloorRequestButtons(Graphics2D g) {
+        g.setTransform(new AffineTransform());
+        g.setStroke(new BasicStroke());
+        g.setColor(COLOR_FLOOR);
+        int elevatorCount = Game.get().getElevatorCount();
+        int floorCount = Game.get().getFloorCount();
+        int numCols = Math.max(floorCount / 3, 1);
+        int numRows = (floorCount / numCols) + ((floorCount % numCols != 0) ? 1 : 0);
+        Color colorOff = new Color(100, 100, 100);
+        for (int i = 0; i < elevatorCount; i++) {
+            double widthSqueeze = 0.25;
+            Vec2 floorPosLL = new Vec2(ELEVATOR_LEFT_RIGHT_SPACE + (ELEVATOR_DOORS_HALFDIMS.x * 2.0) * i + ELEVATOR_SPACING * i + ELEVATOR_DOORS_HALFDIMS.x * widthSqueeze, (double)floorCount * FLOOR_HEIGHT + 0.1 * FLOOR_HEIGHT);
+            Vec2 floorPosUR = new Vec2(floorPosLL.x + (ELEVATOR_DOORS_HALFDIMS.x * 2.0) - ELEVATOR_DOORS_HALFDIMS.x * widthSqueeze * 2, floorPosLL.y + 0.85 * FLOOR_HEIGHT);
+            double rowSpace = (floorPosUR.y - floorPosLL.y) / numRows;
+            double colSpace = (floorPosUR.x - floorPosLL.x) / Math.max(numCols - 1, 1);
+            double btnRadius = Math.min(rowSpace, colSpace) * 0.45;
+            for (int r = 0; r < numRows; ++r) {
+                for (int c = 0; c < numCols; ++c) {
+                    int floorIdx = r * numCols + c;
+                    if (floorIdx < floorCount) {
+                        Vec2 btnPos = new Vec2(floorPosLL.x + colSpace * c, floorPosLL.y + rowSpace * r);
+                        Draw.drawRect(g, btnPos, new Vec2(btnRadius, btnRadius), 1, Simulation.get().elevatorHasFloorRequest(i, floorIdx) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
+                    }
+                }
+            }
 		}
     }
     private void drawWorld(Graphics2D g) {
@@ -186,6 +213,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
             if (pass == 1) {
                 drawFloors(g);
                 drawElevatorUpDownButtons(g);
+                drawElevatorFloorRequestButtons(g);
             }
 
             // Elevators (background)...

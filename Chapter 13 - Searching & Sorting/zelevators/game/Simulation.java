@@ -43,6 +43,13 @@ public class Simulation {
         }
         elevatorRequests.get(floorIdx).remove(direction);
     }
+    protected boolean elevatorHasFloorRequest(int elevatorIdx, int floorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return false;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        return elevator.hasRequestForFloor(floorIdx);
+    }
     protected boolean anyZombiesGettingOnElevator(Elevator elevator) {
         for (int i = 0; i < zombies.size(); ++i) {
             Zombie zombie = zombies.get(i);
@@ -51,6 +58,27 @@ public class Simulation {
             }
         }
         return false;
+    }
+    protected boolean isElevatorIsOnFloor(int elevatorIdx, int floorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return false;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        return (elevator.getCurrentFloor() == (double)floorIdx);
+    }
+    protected boolean isElevatorIsHeadingToFloor(int elevatorIdx, int floorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return false;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        return (elevator.getTargetFloor() == (double)floorIdx);
+    }
+    protected boolean isElevatorIdle(int elevatorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return false;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        return elevator.isIdle();
     }
     
     // Member functions (methods)...

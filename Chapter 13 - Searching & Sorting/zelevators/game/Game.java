@@ -12,12 +12,13 @@ public class Game implements ActionListener {
     public static final int STARTING_LEVEL_TIME     = 90;
 
     public static final int POINTS_ELEVATOR_FLOOR   = -1;   // When the elevator move from one floor to another (cost)
+    public static final int POINTS_ELEVATOR_COMMAND = -1;   // Each command issued to the elevator (cost)
     public static final int POINTS_ZOMBIE_DELIVERED = 50;
     public static final int POINTS_ZOMBIE_STARVED   = -200;
 
     private static final int UPDATE_TIMER_PERIOD    = 16;  // In milliseconds
-    private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(60, (double)World.FIELD_BORDER_TOP * 0.4);
-    private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, (double)World.FIELD_BORDER_TOP * 0.55);
+    private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(60, 21);
+    private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, 28);
 
     // Nested classes...
     protected class GameStats {
@@ -65,6 +66,18 @@ public class Game implements ActionListener {
     }
     public boolean hasElevatorRequestDown(int floorIdx) {
         return Simulation.get().hasElevatorRequest(floorIdx, Direction.Down);
+    }
+    public boolean elevatorHasFloorRequest(int elevatorIdx, int floorIdx) {
+        return Simulation.get().elevatorHasFloorRequest(elevatorIdx, floorIdx);
+    }
+    public boolean isElevatorIsOnFloor(int elevatorIdx, int floorIdx) {
+        return Simulation.get().isElevatorIsOnFloor(elevatorIdx, floorIdx);
+    }
+    public boolean isElevatorIsHeadingToFloor(int elevatorIdx, int floorIdx) {
+        return Simulation.get().isElevatorIsHeadingToFloor(elevatorIdx, floorIdx);
+    }
+    public boolean isElevatorIdle(int elevatorIdx) {
+        return Simulation.get().isElevatorIdle(elevatorIdx);
     }
     public int getPlayerScore() {
         return gameStats.levelScore;
