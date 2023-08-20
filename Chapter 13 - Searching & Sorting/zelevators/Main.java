@@ -1,5 +1,4 @@
 import game.Game;
-import game.GameConfig;
 import logic.MyElevatorController;
 
 public class Main {
@@ -8,7 +7,7 @@ public class Main {
         // ...
 
         // Create up the game, it kicks off the whole process...
-        if (!Game.Create(new GameConfig(), new MyElevatorController())) {
+        if (!Game.Create(new MyElevatorController())) {
             throw new Error("Could not create the game :(");
         }
     }

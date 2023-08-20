@@ -11,6 +11,9 @@ public class MyElevatorController implements ElevatorController {
     public String getStudentName() {
         return "<YOUR NAME>";   // <-- TODO: Replace with your name
     }
+    public int getStudentPeriod() {
+        return -1;              // <-- TODO: Replace with your class period
+    }
 
     // Event: Game has started
     public void onGameStarted(Game game) {

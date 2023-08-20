@@ -3,6 +3,12 @@ package game;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import javax.swing.Timer;
 
 import game.ElevatorController.Direction;
@@ -42,6 +48,11 @@ public class Game implements ActionListener {
         if (instance == null)
             instance = new Game();
         return instance;
+    }
+    public static boolean Create(ElevatorController elevatorController) {
+        // If no config is specified, read it from the server...
+        GameConfig gameConfig = readGameConfigFromServer();
+        return Game.Create(gameConfig, elevatorController);
     }
     public static boolean Create(GameConfig config, ElevatorController elevatorController) {
         return Game.get().create(config, elevatorController);
@@ -206,7 +217,83 @@ public class Game implements ActionListener {
 
     public void actionPerformed(ActionEvent evt) {
         Game.get().update();
-    } 
+    }
+
+    protected static GameConfig readGameConfigFromServer() {
+        GameConfig gameConfig = new GameConfig();
+
+        try {
+            // Data...
+            String jsonPayload = "{\"TableName\":\"classLeaderboardTable\",\"EventType\":\"getZelevatorConfig\"}";
+
+            // Do the POST request...
+            URL url = new URL( "https://u9m0v5iwsk.execute-api.us-west-2.amazonaws.com/default/classBuzzer" );
+            HttpURLConnection conn= (HttpURLConnection) url.openConnection();           
+            conn.setDoOutput( true );
+            conn.setInstanceFollowRedirects( false );
+            conn.setRequestMethod( "POST" );
+            conn.setRequestProperty( "Accept", "application/json"); 
+            conn.setRequestProperty( "Content-Type", "application/json"); 
+            conn.setRequestProperty( "charset", "utf-8");
+            conn.setUseCaches( false );
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes("utf-8");
+                os.write(input, 0, input.length);			
+            }
+
+            // Response..
+            try (BufferedReader br = new BufferedReader( new InputStreamReader(conn.getInputStream(), "utf-8") )) {
+                StringBuilder response = new StringBuilder();
+                String responseLine = null;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+
+                // Parse it...
+                String configDataStr = response.toString().split(":")[1];
+                configDataStr = configDataStr.replace("\"}", "").replace("\"", "");
+                String[] configData = configDataStr.split(";");
+                gameConfig = new GameConfig(Integer.parseInt(configData[0]), Integer.parseInt(configData[1]), Integer.parseInt(configData[2]), Double.parseDouble(configData[3]));
+            }
+        } catch (Exception e) {
+            System.out.println("Leaderboard config read failed - " + e.toString());
+        }
+        return gameConfig;
+    }
+
+    protected void postScoreToLeaderboard(int period, String name, int score) {
+        try {
+            // Data...Example payload: {'TableName':'classLeaderboardTable','EventType':'postLeaderboardStudent','Item':{'periodKey':'1','StudentName':'testName','score':'10'}}
+            String jsonPayload = "{\"TableName\":\"classLeaderboardTable\",\"EventType\":\"postLeaderboardStudent\",\"Item\":{\"periodKey\":\"" + period + "\",\"StudentName\":\"" + name + "\",\"score\":\"" + score + "\"}}";
+
+            // Do the POST request...
+            URL url = new URL( "https://u9m0v5iwsk.execute-api.us-west-2.amazonaws.com/default/classBuzzer" );
+            HttpURLConnection conn= (HttpURLConnection) url.openConnection();           
+            conn.setDoOutput( true );
+            conn.setInstanceFollowRedirects( false );
+            conn.setRequestMethod( "POST" );
+            conn.setRequestProperty( "Accept", "application/json"); 
+            conn.setRequestProperty( "Content-Type", "application/json"); 
+            conn.setRequestProperty( "charset", "utf-8");
+            conn.setUseCaches( false );
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes("utf-8");
+                os.write(input, 0, input.length);			
+            }
+
+            // Response..
+            try (BufferedReader br = new BufferedReader( new InputStreamReader(conn.getInputStream(), "utf-8") )) {
+                StringBuilder response = new StringBuilder();
+                String responseLine = null;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                System.out.println("Leaderboard post - " + response.toString());
+            }
+        } catch (Exception e) {
+            System.out.println("Leaderboard post failed - " + e.toString());
+        }
+    }
 
     protected void update() {
         // Step the sim...
@@ -238,9 +325,16 @@ public class Game implements ActionListener {
         Simulation.get().cullNotInField();
         
         // Update levelTime...
+        double prevTimeRemaining = gameStats.timeRemaining;
         gameStats.timeRemaining = Math.max(gameStats.timeRemaining - deltaTime, 0);
-        if (gameStats.timeRemaining == 0) {
-            // Anything we need to do on the end of the game?
+        if ((gameStats.timeRemaining == 0) && (prevTimeRemaining > 0)) {
+            // End of game event (post to the leaderboard)...
+            if ((elevatorController != null) && 
+                (elevatorController.getStudentPeriod() >= 1) && (elevatorController.getStudentPeriod() <= 7) && 
+                (elevatorController.getStudentName().length() > 0)) {
+                // Go ahead and post it...
+                postScoreToLeaderboard(elevatorController.getStudentPeriod(), elevatorController.getStudentName(), gameStats.levelScore);
+            }
         }
     }
 

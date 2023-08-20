@@ -11,8 +11,9 @@ public interface ElevatorController {
         Down
     }
 
-    // Students should implement this function to return their name.
+    // Students should implement these function to return their name & period (note that returning -1 for the period will avoid posting to the leaderboard)
     public String getStudentName();
+    public int getStudentPeriod();
 
     // Event: Game has started
     public void onGameStarted(Game game);
