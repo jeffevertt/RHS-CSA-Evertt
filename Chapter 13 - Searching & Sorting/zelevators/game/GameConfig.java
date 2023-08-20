@@ -6,6 +6,7 @@ public class GameConfig {
     public int floorCount = 8;
     public int elevatorCount = 2;
     public double zombieSpawnPeriod = 2.0;      // Spawn period for zombies
+    protected boolean isCloudConfigured = false;
 
     // Constructor(s)
     public GameConfig() {

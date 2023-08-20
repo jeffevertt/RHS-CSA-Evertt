@@ -254,6 +254,7 @@ public class Game implements ActionListener {
                 configDataStr = configDataStr.replace("\"}", "").replace("\"", "");
                 String[] configData = configDataStr.split(";");
                 gameConfig = new GameConfig(Integer.parseInt(configData[0]), Integer.parseInt(configData[1]), Integer.parseInt(configData[2]), Double.parseDouble(configData[3]));
+                gameConfig.isCloudConfigured = true;
             }
         } catch (Exception e) {
             System.out.println("Leaderboard config read failed - " + e.toString());
@@ -332,8 +333,10 @@ public class Game implements ActionListener {
             if ((elevatorController != null) && 
                 (elevatorController.getStudentPeriod() >= 1) && (elevatorController.getStudentPeriod() <= 7) && 
                 (elevatorController.getStudentName().length() > 0)) {
-                // Go ahead and post it...
-                postScoreToLeaderboard(elevatorController.getStudentPeriod(), elevatorController.getStudentName(), gameStats.levelScore);
+                // Go ahead and post it (if the game was cloud configured)...
+                if (gameConfig.isCloudConfigured) {
+                    postScoreToLeaderboard(elevatorController.getStudentPeriod(), elevatorController.getStudentName(), gameStats.levelScore);
+                }
             }
         }
     }
