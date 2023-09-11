@@ -1,4 +1,4 @@
-public class Art {
+public class AsciiArt {
     /* List of all requested art...
         Fish: ><(((('>
         Cat: =^..^=
