@@ -1,6 +1,14 @@
 import java.util.concurrent.TimeUnit;
 
 public class AppMain {
+    /* Challenge Goal
+     *  Create the most interesting Ascii Art animation that you can. This must
+     * be your own creation (don't plagiarize), but you can look for inspiration 
+     * on the web. The most creative animation(s) will win Victory Points at EOD Monday.
+     * 
+     * You can use the provided endFrame() function (call it after drawing/printing
+     * a frame of animation). A simple example is provided.
+     */
     public static void main(String[] args) {
         // TODO: Replace the sample code provide here with your own animation
         System.out.print("\033[33m"); // Yellow
