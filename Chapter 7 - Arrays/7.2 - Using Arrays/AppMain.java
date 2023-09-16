@@ -1,3 +1,5 @@
+/* Lesson 7.2 - Using Arrays  */
+
 public class AppMain {
     public static void main(String[] args) {
         // Do not modify the code in this method (edit the methods below main)
