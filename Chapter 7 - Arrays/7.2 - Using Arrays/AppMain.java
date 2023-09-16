@@ -1,4 +1,4 @@
-/* Lesson 7.2 - Using Arrays  */
+// Lesson 7.2 - Using Arrays
 
 public class AppMain {
     public static void main(String[] args) {
