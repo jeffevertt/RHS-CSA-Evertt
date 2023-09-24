@@ -1,3 +1,11 @@
+/* The simulation class manages the game simulation. 
+ *  The game grid size is defined by the contants in this class (GRID_WIDTH, GRID_HEIGHT)
+ *  The simulation handles simulating the game, doing physics, input, etc.
+ *  What it does not do is display (the students code should do this) 
+ * 
+ *  Students should use the public query functions, like...
+ *   'isBallInGridSquare' - To check if the ball is an individual grid square.
+ */
 public class Simulation {
     public static final int GRID_WIDTH = 24;
     public static final int GRID_HEIGHT = 12;
