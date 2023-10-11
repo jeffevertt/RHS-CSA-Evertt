@@ -11,9 +11,9 @@ public class TankAI extends TankAIBase {
     }
         
     // You are free to add member variables & methods to this class (and delete this comment).
-    //  You should use the function in its base class (TankAIBase) to query the world. 
+    //  You should use the methods in its base class (TankAIBase) to query the world. 
     //  Note that you are not allowed to reach into game code directly or make any
-    //  modifications to coded in the game package. Use your judgement and ask your 
+    //  modifications to code in the game package. Use your judgement and ask your 
     //  teacher if you are not sure. If it feels like cheating, it probably is.
 
     public boolean updateAI() {
