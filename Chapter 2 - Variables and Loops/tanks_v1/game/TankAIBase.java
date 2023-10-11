@@ -75,7 +75,7 @@ public abstract class TankAIBase {
         ArrayList<GameObject> list = Simulation.get().getObjectsOfType(Target.class);
         return (list.size() > 0) ? (Target)list.get(0) : null;
     } 
-    public Target[] getPowerups() {
+    public Target[] getTargets() {
         ArrayList<GameObject> list = Simulation.get().getObjectsOfType(Target.class);
         Target[] targets = new Target[list.size()];
         for (int i = 0; i < list.size(); ++i) {
