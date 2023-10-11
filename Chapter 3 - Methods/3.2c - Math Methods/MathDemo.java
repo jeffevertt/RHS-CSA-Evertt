@@ -59,9 +59,9 @@ public class MathDemo {
     // | 100 | 10000 | 
     // +-----+-------+
     // You can assert that maxN*maxN < 100000 and maxN < 1000
-    // Thus N will be at moat a  digit number and maxN will be
+    // Thus N will be at most a 3 digit number and maxN will be
     // at most a 5 digit number.   
-    public void printTableOfSquares(int maxN) {
+    public static void printTableOfSquares(int maxN) {
         // TODO: Implement.
         // NOTE YOU MUST PAD INTEGERS so that the table looks pretty.  
         // Thus you immediately can use your padLeft method.  
