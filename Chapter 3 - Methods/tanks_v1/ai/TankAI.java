@@ -9,6 +9,9 @@ public class TankAI extends TankAIBase {
     public String getPlayerName() {
         return "<Your Name>";  // <---- Put your first name here
     }
+    public int getPlayerPeriod() {
+        return -1;
+    }
         
     // You are free to add member variables & methods to this class (and delete this comment).
     //  You should use the methods in its base class (TankAIBase) to query the world. 
