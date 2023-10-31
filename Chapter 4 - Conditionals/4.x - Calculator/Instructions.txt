@@ -1,0 +1,50 @@
+MAKE A CALCULATOR
+
+Run the program (AppMain.java). You should see a calculator window that looks similar to the default Calculator app you have on your Windows computer.
+Click the buttons. They don't do anything. Except for the '1' button.
+
+Your task is to implement as many of the buttons as you can. Ideally, you will make it so that its behavior ends up pretty similar to the Windows calculator.
+
+There is one major difference expected between your calculator and the Windows calculator!!!
+In your calculator, we don't respect the standard order of operations. We just work left-to-right.
+That means "2 + 2 / 2 =" should be 2. If you put this on a real calculator, "2 + 2 / 2 =" would be 3.
+
+The calculator UI looks like this:
+
++===============+
+|  Scientific   |
+|       1 + 2 + | <=== "Expression": the previous sequence of operations/functions
+|             3 | <=== "Entry": either the number that the user is currently entering, or the result of the previous calculation (if the user has not started entering a new number)
+|MC MR M+ M- MS | <=== Memory buttons
+| x x x x x x x |
+| x x x x x x x |
+| x x x x x x x |
+| x x 7 8 9 x x | <=== Digit/function/operator buttons
+| x x 4 5 6 x x |
+| x x 1 2 3 x x |
+| x x x 0 . x x |
++===============+
+
+
+CODE EXPECTATIONS
+
+You should EDIT code in the Calculator class (in the "student" folder).
+You shouldn't edit code in other files.
+
+You should USE constants from the Buttons class (in the "constants" folder). This is already imported into Calculator.java for you, so you can reference these constants like "Buttons.PLUS", for example.
+You should USE methods from the EngineAPI class (in the "internal" folder). This is already *statically* imported into Calculator.java for you, so you can call these methods like "isEntryIncomplete()" for example.
+See the tooltips/docs of EngineAPI for method info.
+You shouldn't use code from other files.
+
+
+GETTING STARTED
+
+- Handle digits 0 to 9 by appending to the "entry" when the button is pressed. Confirm that it shows on the display.
+- Handle the "2nd" button, using the appropriate EngineAPI function to swap the other buttons.
+- Handle an operator or function, such as "+". What do you need to store or calculate when the operator button is clicked? Can you update the "expression" too?
+- Handle the decimal point to support floating-point numbers.
+- Handle the "=" symbol. This one can be quite weird based on the previous state.
+- Handle the memory buttons, such as "MS" and "MR".
+- Handle the "C"/"CE" buttons. Can you swap the button between the two at the right time? Can you clear the correct data when they are clicked?
+
+Remember that this is supposed to be an extra challenge. If you get stuck on something, you can often take a break and work on a different part of the program.
