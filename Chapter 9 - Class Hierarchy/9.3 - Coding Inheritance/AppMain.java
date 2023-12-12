@@ -17,15 +17,18 @@ public class AppMain {
     //  If at any point either creature has reached zero health, then they are defeated.
     // When a winner is found, that creature goes on. Its health is restored to its original before the next duel.
 
-    // There are 8 creatures in the arena that will duel...
+    // There are 8 creatures in the arena that will duel (this is also the order they enter the arena)...
     //  Fluffletuft (Strong), Whiskerwhisp (Accurate), Fuzzlenook (Strong), Shagglewisp (Fast), 
     //  Puffernip (Fast), Tanglethorn (Accurate), Quillfluff (Strong), Snugglewight (Fast)
 
-    // Requirements...
-    //  - You must have the following classes: Arena, Creature, StrongCreature, FastCreature, AccurateCreature
-    //  - Your app's main function should not contain any code logic. It should merely create object(s) and set them off.
-    //  - Design with appropriate inheritance and good separation of concerns, encapsulation, cohesion.
-    // 
+    // You are implementing a portion of this program. A portion is provided for you.
+    //  Each portion you are responsible for is marked with a TODO. 
+    //  They are located...
+    //      Arena.nextCreature()   <-- you must finish this method
+    //      AccurateCreature.java  <-- you must create this file/class
+    //      FastCreature.java      <-- you must create this file/class
+    //      StrongCreature.java    <-- you must create this file/class
+
     // Example output…
     //   Dueling: Fluffletuft(Strong) vs Whiskerwhisp(Accurate)!
     //     Fluffletuft(Strong) takes 20 damage.
@@ -75,5 +78,8 @@ public class AppMain {
     //    winner: Tanglethorn(Accurate)
     //   Ultimate champion: Tanglethorn(Accurate)!!!
 
-    // Your code goes here...
+    public static void main(String[] args) {
+        Arena arena = new Arena();
+        arena.runDuels();
+    }
 }
