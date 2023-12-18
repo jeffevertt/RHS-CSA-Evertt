@@ -1,5 +1,5 @@
 public class AppMain {
-    /* You are writting code that guesses the number I am thinking of
+    /* You are writing code that guesses the number I am thinking of
      *  (in as few guesses as possible). 
      * 
      * Here are the rules of my game.
@@ -9,7 +9,7 @@ public class AppMain {
      *       -1 : My number is smaller than your guess
      *        1 : My number is larger than your guess
      *   - You can guess as many times as you'd like, but I am going
-     *       to keep count of how many guesses it took you (and I'm judgemental).
+     *       to keep count of how many guesses it took you (and I'm judgmental).
      * 
      * You will write your code in the NumberGuesser class that has already been
      *  stubbed out for you. I'd like you to make TWO implementations...
