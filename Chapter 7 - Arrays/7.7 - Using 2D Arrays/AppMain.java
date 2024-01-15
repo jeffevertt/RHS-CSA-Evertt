@@ -3,24 +3,20 @@ public class AppMain {
     //  If you have never played it before, do a google search and try it out.
     // In this game, the user plays against the computer (this program).
     // 
-    // Your program must have the following elements...
-    //  - A class called Board. 
-    //      - This class should be responsible for keeping the board's state.
-    //      - The board's state must be stored in a 2D array.
-    //      - It should be able to render its current state into a string.
-    //      - It should support placeMark(Move move) that marks a space for "X" or "O".
-    //      - It should support calcWinner() that returns an int with 0:none, 1:human, 2:AI
-    //  - A base class called Player.
-    //      - A subclass called AiPlayer which is responsible for determining the computer's moves.
-    //      - A subclass called HumanPlayer which accepts input from the user.
-    //      - The players should support a getNextMove(Board board) function that returns a Move class.
-    //          (note that the class Move is provided for you)
-    //      - The AiPlayer should just pick an random empty square when it is its turn.
-    //  - The program's main function ties it all together and loops until someone wins (or it is a draw).
-    //      - The human goes first and is always "X". The AI is always "O".
-    //  - A function in class Move is provided for converting user input into a Move.
+    // The class declarations are given to you. You will need to complete the
+    //  Board class. Most of its methods have signatures & comments that spec
+    //  out their behavior. You must implement those methods. To get started,
+    //  I suggest doing the following.
+    //    - If you don't know Tic-Tac-Toe, watch a YouTube video on it.
+    //    - Take a look over the main method. Try to understand...
+    //        - The object abstractions: Board, Move, & HumanPlayer/AiPlayer
+    //    - Look over the Board class and start implementing each method.
+    //        - Use the comments for each method to understand the their purpose.
+    //        - I'd recommend starting at the top of the file and working 
+    //          your way down. Once you implement renderToString you should be
+    //          able to start testing (running the program, looking at the output).
     // 
-    //  Example:
+    // Example output...
     //      |   |   
     //   -----------
     //      |   |
@@ -58,6 +54,40 @@ public class AppMain {
     //   You win!!!
 
     public static void main(String[] args) {
-        // TODO
+        // Setup
+        Board board = new Board();
+        HumanPlayer human = new HumanPlayer();
+        AiPlayer ai = new AiPlayer();
+
+        // Print the empty board
+        System.out.println();
+        System.out.println(board.renderToString());
+
+        // Loop till the game is done
+        while ((board.calcWinner() == 0) && (board.numberEmpty() != 0)) {
+            // Player move
+            Move move = human.getNextMove(board);
+            board.placeMark(move);
+            System.out.println();
+
+            // Ai, if the game isn't done
+            if ((board.calcWinner() == 0) && (board.numberEmpty() != 0)) {
+                move = ai.getNextMove(board);
+                board.placeMark(move);
+                System.out.println("AI's move: " + move + "\n");
+            }
+
+            // Print the board
+            System.out.println(board.renderToString());
+        }
+
+        // Report the winner...
+        if (board.calcWinner() == 1) {
+            System.out.println("You win!!!");
+        } else if (board.calcWinner() == 2) {
+            System.out.println("AI wins - better luck next time.");
+        } else {
+            System.out.println("It's a draw...no winners");
+        }
     }
 }
