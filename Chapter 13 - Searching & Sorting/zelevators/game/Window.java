@@ -38,7 +38,7 @@ public class Window extends JFrame implements KeyListener {
     protected static boolean create() {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                get().add(World.get());
+                get().add(WorldFrame.get());
                 get().setVisible(true);
             }
         });

@@ -25,6 +25,7 @@ public class Draw {
 
     // Functions...
     public static void beginRender(Graphics2D g) {
+        // Setup fonts, if not already done...
         if (fontDefault != null) {
             return;
         }
@@ -36,8 +37,12 @@ public class Draw {
         fonts[FontSize.LARGE.ordinal()] = fontDefault.deriveFont(34f);
         fonts[FontSize.XLARGE.ordinal()] = fontDefault.deriveFont(42f);
     }
+    public static void resetRenderState(Graphics2D g) {
+        // Reset render state...
+        g.setTransform(new AffineTransform());
+    }
     public static FontSize fontSizeFromScale(double scale) {
-        scale *= World.get().getPixelsPerUnit() / 42;
+        scale *= World.get(0).getPixelsPerUnit() / 42;
         if (scale <= 0.5) {
             return FontSize.XXSMALL;
         }
@@ -55,66 +60,66 @@ public class Draw {
         }
         return FontSize.XLARGE;
     }
-    public static void drawRectShadow(Graphics2D g, Vec2 pos, Vec2 halfDims, double scale, Color colorShadow, double roundedRadius) {
+    public static void drawRectShadow(int playerIdx, Graphics2D g, Vec2 pos, Vec2 halfDims, double scale, Color colorShadow, double roundedRadius) {
         // Setup transform...
-        Vec2 drawPosPixels = Util.toPixels(pos);
+        Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
         AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y);
 
         // Draw it...
-        drawRectShadow(g, transform, halfDims, scale, colorShadow, roundedRadius, Vec2.zero());
+        drawRectShadow(playerIdx, g, transform, halfDims, scale, colorShadow, roundedRadius, Vec2.zero());
     }
-    public static void drawRectShadow(Graphics2D g, AffineTransform transform, Vec2 halfDims, double scale, Color colorShadow, double roundedRadius, Vec2 geoOffset) {
+    public static void drawRectShadow(int playerIdx, Graphics2D g, AffineTransform transform, Vec2 halfDims, double scale, Color colorShadow, double roundedRadius, Vec2 geoOffset) {
         // Transform...
         g.setTransform(transform);
 
         // Fill...
         g.setPaint(colorShadow);
-        Vec2 halfDimsPixels = Util.toPixelDims(Vec2.multiply(halfDims, 1.05 * scale)); // A little bigger
-        Vec2 geoOffsetPixels = Util.toPixelDims(Vec2.multiply(geoOffset, scale));
-        int roundedPixels = Util.toPixelsLengthInt(roundedRadius * scale * 2); // Extra rounding for shadows
+        Vec2 halfDimsPixels = Util.toPixelDims(playerIdx, Vec2.multiply(halfDims, 1.05 * scale)); // A little bigger
+        Vec2 geoOffsetPixels = Util.toPixelDims(playerIdx, Vec2.multiply(geoOffset, scale));
+        int roundedPixels = Util.toPixelsLengthInt(playerIdx, roundedRadius * scale * 2); // Extra rounding for shadows
         g.fillRoundRect((int)(geoOffsetPixels.x-halfDimsPixels.x), (int)(geoOffsetPixels.y-halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), roundedPixels, roundedPixels);
     }
-    public static void drawRect(Graphics2D g, Vec2 pos, Vec2 halfDims, double scale, Color colorFill, Color colorStroke, double strokeWidth, double roundedRadius) {
+    public static void drawRect(int playerIdx, Graphics2D g, Vec2 pos, Vec2 halfDims, double scale, Color colorFill, Color colorStroke, double strokeWidth, double roundedRadius) {
         // Setup transform...
-        Vec2 drawPosPixels = Util.toPixels(pos);
+        Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
         AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y);
 
         // Draw it..
-        drawRect(g, transform, halfDims, scale, colorFill, colorStroke, strokeWidth, roundedRadius, Vec2.zero());
+        drawRect(playerIdx, g, transform, halfDims, scale, colorFill, colorStroke, strokeWidth, roundedRadius, Vec2.zero());
     }
-    public static void drawRect(Graphics2D g, AffineTransform transform, Vec2 halfDims, double scale, Color colorFill, Color colorStroke, double strokeWidth, double roundedRadius, Vec2 geoOffset) {
+    public static void drawRect(int playerIdx, Graphics2D g, AffineTransform transform, Vec2 halfDims, double scale, Color colorFill, Color colorStroke, double strokeWidth, double roundedRadius, Vec2 geoOffset) {
         // Transform...
         g.setTransform(transform);
 
         // Fill...
         g.setPaint(colorFill);
-        Vec2 halfDimsPixels = Util.toPixelDims(Vec2.multiply(halfDims, scale));
-        Vec2 geoOffsetPixels = Util.toPixelDims(Vec2.multiply(geoOffset, scale));
-        int roundedPixels = Util.toPixelsLengthInt(roundedRadius * scale);
+        Vec2 halfDimsPixels = Util.toPixelDims(playerIdx, Vec2.multiply(halfDims, scale));
+        Vec2 geoOffsetPixels = Util.toPixelDims(playerIdx, Vec2.multiply(geoOffset, scale));
+        int roundedPixels = Util.toPixelsLengthInt(playerIdx, roundedRadius * scale);
         g.fillRoundRect((int)Math.round(geoOffsetPixels.x-halfDimsPixels.x), (int)Math.round(geoOffsetPixels.y-halfDimsPixels.y), (int)Math.round(halfDimsPixels.x * 2), (int)Math.round(halfDimsPixels.y * 2), roundedPixels, roundedPixels);
 
         // Stroke...
         if (strokeWidth > 0) {
             g.setPaint(colorStroke);
-            g.setStroke(new BasicStroke((float)Math.max(Util.toPixelsLength(strokeWidth), 1)));
+            g.setStroke(new BasicStroke((float)Math.max(Util.toPixelsLength(playerIdx, strokeWidth), 1)));
             g.drawRoundRect((int)(geoOffsetPixels.x-halfDimsPixels.x), (int)(geoOffsetPixels.y-halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), roundedPixels, roundedPixels);
         }
     }
-    public static void drawImage(Graphics2D g, BufferedImage image, Vec2 pos, Vec2 halfDims, double scale) {
+    public static void drawImage(int playerIdx, Graphics2D g, BufferedImage image, Vec2 pos, Vec2 halfDims, double scale) {
         // Transform...
         g.setTransform(new AffineTransform());
         
         // Setup...
-        Vec2 drawPosPixels = Util.toPixels(pos);
-        Vec2 halfDimsPixels = Util.toPixelDims(Vec2.multiply(halfDims, scale));
+        Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
+        Vec2 halfDimsPixels = Util.toPixelDims(playerIdx, Vec2.multiply(halfDims, scale));
 
         // Draw it...
         g.drawImage(image, (int)(drawPosPixels.x - halfDimsPixels.x), (int)(drawPosPixels.y - halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), null);
     }
-    public static void drawImageRotated(Graphics2D g, BufferedImage image, Vec2 pos, Vec2 halfDims, double rotDeg, double scale) {
+    public static void drawImageRotated(int playerIdx, Graphics2D g, BufferedImage image, Vec2 pos, Vec2 halfDims, double rotDeg, double scale) {
         // Setup...
-        Vec2 drawPosPixels = Util.toPixels(pos);
-        Vec2 halfDimsPixels = Util.toPixelDims(Vec2.multiply(halfDims, scale));
+        Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
+        Vec2 halfDimsPixels = Util.toPixelDims(playerIdx, Vec2.multiply(halfDims, scale));
 
         // Transform...
         AffineTransform transform = new AffineTransform();
@@ -125,12 +130,12 @@ public class Draw {
         // Draw it...
         g.drawImage(image, 0, 0, (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), null);
     }
-    public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, FontSize fontSize, Color color) {
-        drawTextCentered(g, text, pos, fontSize, color, null);
+    public static void drawTextCentered(int playerIdx, Graphics2D g, String text, Vec2 pos, FontSize fontSize, Color color) {
+        drawTextCentered(playerIdx, g, text, pos, fontSize, color, null);
     }
-    public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, FontSize fontSize, Color color, Color dropShadowColor) {
+    public static void drawTextCentered(int playerIdx, Graphics2D g, String text, Vec2 pos, FontSize fontSize, Color color, Color dropShadowColor) {
         // Basics...
-        Vec2 drawPosPixels = Util.toPixels(pos);
+        Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
         g.setTransform(AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y));
         g.setFont(fonts[fontSize.ordinal()]);
 

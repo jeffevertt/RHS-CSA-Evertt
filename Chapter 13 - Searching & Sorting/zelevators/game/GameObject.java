@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 
 public class GameObject {
 	// Member variables...
+    protected int playerIdx = -1;
     protected Vec2 pos = null;
 	protected double timeTillDeath = 0;
     protected double timeSinceBorn = 0;
@@ -13,8 +14,13 @@ public class GameObject {
         return Vec2.copy(this.pos);
     }
 
+    public int getPlayerIdx() {
+        return playerIdx;
+    }
+
 	// Member functions (methods)...
-    protected GameObject() {
+    protected GameObject(int playerIdx) {
+        this.playerIdx = playerIdx;
     }
 
     protected void destroy() {
@@ -33,7 +39,7 @@ public class GameObject {
         timeSinceBorn += deltaTime;
 
         // If we are off the field, kill ourselves off...
-        if (!Util.isInsideField(pos)) {
+        if (!Util.isInsideField(playerIdx, pos)) {
             timeTillDeath = Math.max(timeTillDeath, 0.0001);
         }
         if (timeTillDeath > 0.0) {

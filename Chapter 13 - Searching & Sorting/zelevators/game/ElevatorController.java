@@ -36,10 +36,10 @@ public interface ElevatorController {
     //  Note that arriving at and leaving a floor will clear internal elevator requests (both internal and external)
     //  Students do not need to override this method, instead it should be called to control the elevator.
     public default boolean gotoFloor(int elevatorIdx, int floorIdx) {
-        Elevator elevator = Simulation.get().getElevator(elevatorIdx);
+        Elevator elevator = Simulation.get(Game.get().getActivePlayerIdx()).getElevator(elevatorIdx);
         if (elevator != null) {
             elevator.setTargetFloor(floorIdx);
-            Game.get().awardPoints(Game.POINTS_ELEVATOR_COMMAND);
+            Game.get().awardPoints(elevator.getPlayerIdx(), Game.POINTS_ELEVATOR_COMMAND);
         }
         return true;
     }

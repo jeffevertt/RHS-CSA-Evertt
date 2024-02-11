@@ -2,38 +2,23 @@ package game;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-import javax.swing.JPanel;
-import javax.swing.Timer;
-
-public class World extends JPanel implements ActionListener, MouseListener {
+public class World {
     // Singleton...
-	private static World instance = null;
-	public static synchronized World get()
-    {
-        if (instance == null)
-            instance = new World();
+	private static World[] instances = { null, null };
+	protected static synchronized World get(int playerIdx) {
+        if (instances[playerIdx] == null)
+            instances[playerIdx] = new World(playerIdx);
   
-        return instance;
+        return instances[playerIdx];
     }
 
     // Constants...
     public static final int FIELD_BORDER_TOP = 55;
     public static final int FIELD_BORDER_BOT = 10;
-    public static final Color COLOR_BACKGROUND = new Color(198, 181, 177);
     public static final Color COLOR_FLOOR = new Color(99, 90, 88);
     public static final Color COLOR_SHADOW = new Color(51, 46, 45);
     public static final Color COLOR_SHADOW_TEXT = new Color(50, 50, 50);
@@ -41,15 +26,15 @@ public class World extends JPanel implements ActionListener, MouseListener {
     public static final Vec2 ELEVATOR_DOORS_HALFDIMS = new Vec2(0.35, 0.45);
     public static final double ELEVATOR_SPACING = ELEVATOR_DOORS_HALFDIMS.x;
     public static final double ELEVATOR_LEFT_RIGHT_SPACE = 3.0;
+    public static final double TWO_PLAYER_MID_GAP = 1.5;
     public static final double ZOMBIE_WAITING_AREA_MAX_OFFSET = -0.75;  // Offset from ELEVATOR_LEFT_RIGHT_SPACE
     public static final double BUTTON_UP_DOWN_OFFSET = -0.3;            // Offset from ELEVATOR_LEFT_RIGHT_SPACE
-    public static final int RENDER_TIMER_PERIOD = 16;  // In milliseconds
 
     // Member variables...
+    private int playerIdx = -1;
     private Vec2 origin = new Vec2(0, 0);
     private Vec2 canvasSize = new Vec2(0, 0);
     private double pixelsPerUnit = 1;
-    private Timer renderTimer;
 
     // Accessors...
     public Vec2 getOrigin() {
@@ -63,67 +48,27 @@ public class World extends JPanel implements ActionListener, MouseListener {
     }
 
     // Member functions (methods)...
-    protected World() {
-        // Resize event...
-        this.addComponentListener(new ComponentAdapter() {
-            public void componentResized(ComponentEvent componentEvent) {
-                // Set the origin and sizes (first, just figure out y)...
-                canvasSize = new Vec2(0, getHeight() - FIELD_BORDER_TOP);
-                pixelsPerUnit = Math.floor(canvasSize.y / (Game.get().getFloorCount() + 1));    // Top row is used to show elevator buttons
-                origin = new Vec2(0, getHeight() - FIELD_BORDER_BOT);
-
-                // Now we can figure out the x part...
-                canvasSize.x = (ELEVATOR_LEFT_RIGHT_SPACE * 2 + 
-                                ELEVATOR_DOORS_HALFDIMS.x * 2 * Game.get().getElevatorCount() + 
-                                ELEVATOR_SPACING * Math.max(Game.get().getElevatorCount() - 1, 0)) * pixelsPerUnit;
-                origin.x = (getWidth() - canvasSize.x) / 2;
-
-                // Setup the level...
-                if (!Game.get().isGameActive()) {
-                    Game.get().onLevelSetup();
-                }
-            }
-        });
-
-        // Defaults...
-        setBackground(COLOR_BACKGROUND);
-
-        // Kick off render timer...
-        if (renderTimer != null && renderTimer.isRunning()) {
-            renderTimer.stop();
-        }
-        renderTimer = new Timer(RENDER_TIMER_PERIOD, this);
-        renderTimer.start();
-
-        // Mouse listener...
-        this.addMouseListener(this);
+    protected World(int playerIdx) {
+        // Save off the playerIdx for this world...
+        this.playerIdx = playerIdx;
     }
 
-    // Render timer...
-    public void actionPerformed(ActionEvent event) {
-        if (event.getSource() == renderTimer) {
-            repaint();
-        }
-    }
+    protected void onWorldFrameResized() {
+        // Setup...
+        WorldFrame worldFrame = WorldFrame.get();
 
-    // Mouse events...
-    public void mousePressed(MouseEvent event) {
-    }
-    public void mouseReleased(MouseEvent event) {
-    }
-    public void mouseEntered(MouseEvent event) {
-    }
-    public void mouseExited(MouseEvent event) {
-    }
-    public void mouseClicked(MouseEvent event) {
-        // Double click restarts it...
-        if (event.getClickCount() == 2 && !event.isConsumed()) {
-            Game.get().onLevelSetup();
-        }
-        else if ((event.getClickCount() == 1) && Game.get().isGameActive()) {
-            // Pause/unpause the game...
-            Game.get().setGamePause(!Game.get().isGamePaused());
-        }
+        // Set the origin and sizes (first, just figure out y)...
+        canvasSize = new Vec2(0, worldFrame.getFrameHeight() - FIELD_BORDER_TOP);
+        pixelsPerUnit = Math.floor(canvasSize.y / (Game.get().getFloorCount() + 1));    // Top row is used to show elevator buttons
+        origin = new Vec2(0, worldFrame.getFrameHeight() - FIELD_BORDER_BOT);
+
+        // Now we can figure out the x part...
+        canvasSize.x = (ELEVATOR_LEFT_RIGHT_SPACE * 2 + 
+                        ELEVATOR_DOORS_HALFDIMS.x * 2 * Game.get().getElevatorCount() +
+                        ELEVATOR_SPACING * Math.max(Game.get().getElevatorCount() - 1, 0)) * pixelsPerUnit;
+        origin.x = (Game.get().getPlayerCount() == 1) ? ((worldFrame.getFrameWidth() - canvasSize.x) / 2) :
+                        (playerIdx == 0) ? ((worldFrame.getFrameWidth() - canvasSize.x * 2 - TWO_PLAYER_MID_GAP * pixelsPerUnit) / 2) :
+                                            (worldFrame.getFrameWidth() / 2 + TWO_PLAYER_MID_GAP / 2 * pixelsPerUnit);
     }
     
     // Draw functions...
@@ -132,10 +77,10 @@ public class World extends JPanel implements ActionListener, MouseListener {
         g.setStroke(new BasicStroke());
         g.setColor(COLOR_FLOOR);
         int floorCount = Game.get().getFloorCount();
-        Vec2 floorHalfDims = new Vec2(Util.maxCoordFrameUnits().x / 2, 0.025);
+        Vec2 floorHalfDims = new Vec2(Util.maxCoordFrameUnits(playerIdx).x / 2, 0.025);
 		for (int i = 0; i < floorCount; i++) {
             Vec2 floorPosLL = new Vec2(0, (double)i * FLOOR_HEIGHT - floorHalfDims.y);
-            Draw.drawRect(g, Vec2.add(floorPosLL, floorHalfDims), floorHalfDims, 1, COLOR_FLOOR, Color.BLACK, floorHalfDims.y / 5, 0.05);
+            Draw.drawRect(playerIdx, g, Vec2.add(floorPosLL, floorHalfDims), floorHalfDims, 1, COLOR_FLOOR, Color.BLACK, floorHalfDims.y / 5, 0.05);
 		}
     }
     private void drawElevatorUpDownButtons(Graphics2D g) {
@@ -146,8 +91,8 @@ public class World extends JPanel implements ActionListener, MouseListener {
             Vec2 posButtonUp = Vec2.add(posButtonCenter, Vec2.multiply(Vec2.up(), FLOOR_HEIGHT * 0.125));
             Vec2 posButtonDown = Vec2.add(posButtonCenter, Vec2.multiply(Vec2.up(), FLOOR_HEIGHT * -0.125));
             Vec2 halfDims = new Vec2(FLOOR_HEIGHT * 0.1, FLOOR_HEIGHT * 0.1);
-            Draw.drawRect(g, posButtonUp, halfDims, 1, Simulation.get().hasElevatorRequest(i, ElevatorController.Direction.Up) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
-            Draw.drawRect(g, posButtonDown, halfDims, 1, Simulation.get().hasElevatorRequest(i, ElevatorController.Direction.Down) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
+            Draw.drawRect(playerIdx, g, posButtonUp, halfDims, 1, Simulation.get(playerIdx).hasElevatorRequest(i, ElevatorController.Direction.Up) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
+            Draw.drawRect(playerIdx, g, posButtonDown, halfDims, 1, Simulation.get(playerIdx).hasElevatorRequest(i, ElevatorController.Direction.Down) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
 		}
     }
     private void drawElevatorFloorRequestButtons(Graphics2D g) {
@@ -172,41 +117,21 @@ public class World extends JPanel implements ActionListener, MouseListener {
                     int floorIdx = r * numCols + c;
                     if (floorIdx < floorCount) {
                         Vec2 btnPos = new Vec2(floorPosLL.x + colSpace * c, floorPosLL.y + rowSpace * r);
-                        Draw.drawRect(g, btnPos, new Vec2(btnRadius, btnRadius), 1, Simulation.get().elevatorHasFloorRequest(i, floorIdx) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
+                        Draw.drawRect(playerIdx, g, btnPos, new Vec2(btnRadius, btnRadius), 1, Simulation.get(playerIdx).elevatorHasFloorRequest(i, floorIdx) ? Color.WHITE : colorOff, Color.BLACK, 0.02, 1);
                     }
                 }
             }
 
             // Current floor...
             Vec2 textPos = new Vec2(ELEVATOR_LEFT_RIGHT_SPACE + (ELEVATOR_DOORS_HALFDIMS.x * 2.0) * i + ELEVATOR_SPACING * i + ELEVATOR_DOORS_HALFDIMS.x, (double)floorCount * FLOOR_HEIGHT + 0.1 * FLOOR_HEIGHT + btnRadius * 2 + rowSpace * (numRows - 1));
-            Draw.drawTextCentered(g, "" + (int)(Simulation.get().getElevator(i).getCurrentFloor() + 1), textPos, Draw.fontSizeFromScale(0.25), new Color(255, 140, 20), Color.BLACK);
+            Draw.drawTextCentered(playerIdx, g, "" + (int)(Simulation.get(playerIdx).getElevator(i).getCurrentFloor() + 1), textPos, Draw.fontSizeFromScale(0.25), new Color(255, 140, 20), Color.BLACK);
 		}
     }
-    private void drawWorld(Graphics2D g) {
-        // Wait till we're actually inialized...
-        if (!Game.get().isInitialized()) {
-            return;
-        }
-
-        // Setup...
-        Draw.beginRender(g);
-
-        // Rendering hints...
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        Map<Object, Object> hints = new LinkedHashMap<Object, Object>();
-        hints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        hints.put(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        hints.put(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-        g.addRenderingHints(hints);
-
-        // Full window clear...
-        g.setColor(Color.LIGHT_GRAY);
-        g.fillRect(0, 0, getWidth(), getHeight());
-
+    protected void drawWorld(Graphics2D g) {
         // Background...
-        Vec2 llPixels = new Vec2(Util.toPixelsX(0), Util.toPixelsY(0));
-        Vec2 urPixels = new Vec2(Util.toPixelsX(Util.maxCoordFrameUnits().x), Util.toPixelsY(Util.maxCoordFrameUnits().y));
-        g.setColor(COLOR_BACKGROUND);
+        Vec2 llPixels = new Vec2(Util.toPixelsX(playerIdx, 0), Util.toPixelsY(playerIdx, 0));
+        Vec2 urPixels = new Vec2(Util.toPixelsX(playerIdx, Util.maxCoordFrameUnits(playerIdx).x), Util.toPixelsY(playerIdx, Util.maxCoordFrameUnits(playerIdx).y));
+        g.setColor(WorldFrame.COLOR_BACKGROUND);
         g.fillRect((int)llPixels.x, (int)urPixels.y, (int)(urPixels.x - llPixels.x), (int)(llPixels.y - urPixels.y));
         g.setColor(!Game.get().isGamePaused() ? (Game.get().isGameActive() ? new Color(95, 95, 143) : Color.LIGHT_GRAY) : Color.RED);
         g.setStroke(new BasicStroke(2));
@@ -222,7 +147,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
             }
 
             // Elevators (background)...
-            ArrayList<Elevator> elevators = Simulation.get().getElevators();
+            ArrayList<Elevator> elevators = Simulation.get(playerIdx).getElevators();
             for (int i = 0; i < elevators.size(); ++i) {
                 Elevator elevator = elevators.get(i);
                 if (pass == 0) elevator.drawShadow(g);
@@ -230,7 +155,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
             }
 
             // Zombies (inside of elevators)...
-            ArrayList<Zombie> zombies = Simulation.get().getZombies();
+            ArrayList<Zombie> zombies = Simulation.get(playerIdx).getZombies();
             for (int i = 0; i < zombies.size(); ++i) {
                 Zombie zombie = zombies.get(i);
                 if (zombie.isOnAnElevator()) {
@@ -253,11 +178,5 @@ public class World extends JPanel implements ActionListener, MouseListener {
                 }
             }
         }
-
-        // Let the game do its drawing...
-        Game.get().Draw(g);
-    }
-    public void paint(Graphics g) {
-        drawWorld((Graphics2D)g);
     }
 }

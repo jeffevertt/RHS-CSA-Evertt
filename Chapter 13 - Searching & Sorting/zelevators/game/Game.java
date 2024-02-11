@@ -29,15 +29,18 @@ public class Game implements ActionListener {
         public boolean isPaused = false;
         public double timeRemaining = 0;
         public int gameTimeInSecondsMax;
-        public int levelScore = 0;
+        public int[] levelScores = new int[2];
         public double timeSinceSpawnedZombie = 100000.0;
+        public int activePlayerIdx = 0;
 
         public void reset(int gameTimeInSeconds) {
             isPaused = false;
             timeRemaining = gameTimeInSeconds;
             gameTimeInSecondsMax = gameTimeInSeconds;
-            levelScore = 0;
+            levelScores[0] = 0;
+            levelScores[1] = 0;
             timeSinceSpawnedZombie = 100000.0;
+            activePlayerIdx = 0;
         }
     }
 
@@ -54,8 +57,16 @@ public class Game implements ActionListener {
         GameConfig gameConfig = readGameConfigFromServer();
         return Game.Create(gameConfig, elevatorController);
     }
+    public static boolean Create(ElevatorController elevatorController1, ElevatorController elevatorController2) {
+        // If no config is specified, read it from the server...
+        GameConfig gameConfig = readGameConfigFromServer();
+        return Game.Create(gameConfig, elevatorController1, elevatorController2);
+    }
     public static boolean Create(GameConfig config, ElevatorController elevatorController) {
         return Game.get().create(config, elevatorController);
+    }
+    public static boolean Create(GameConfig config, ElevatorController elevatorController1, ElevatorController elevatorController2) {
+        return Game.get().create(config, elevatorController1, elevatorController2);
     }
 
     // Accessors...
@@ -75,34 +86,37 @@ public class Game implements ActionListener {
         return (gameConfig == null) ? -1 : gameConfig.floorCount;
     }
     public void setElevatorTravelDirection(int elevatorIdx, ElevatorController.Direction travelDirection) {
-        Simulation.get().setElevatorTravelDirection(elevatorIdx, travelDirection);
+        Simulation.get(gameStats.activePlayerIdx).setElevatorTravelDirection(elevatorIdx, travelDirection);
     }
     public ElevatorController.Direction getElevatorTravelDirection(int elevatorIdx) {
-        return Simulation.get().getElevatorTravelDirection(elevatorIdx);
+        return Simulation.get(gameStats.activePlayerIdx).getElevatorTravelDirection(elevatorIdx);
     }    
     public boolean hasElevatorRequestUp(int floorIdx) {
-        return Simulation.get().hasElevatorRequest(floorIdx, Direction.Up);
+        return Simulation.get(gameStats.activePlayerIdx).hasElevatorRequest(floorIdx, Direction.Up);
     }
     public boolean hasElevatorRequestDown(int floorIdx) {
-        return Simulation.get().hasElevatorRequest(floorIdx, Direction.Down);
+        return Simulation.get(gameStats.activePlayerIdx).hasElevatorRequest(floorIdx, Direction.Down);
     }
     public boolean elevatorHasFloorRequest(int elevatorIdx, int floorIdx) {
-        return Simulation.get().elevatorHasFloorRequest(elevatorIdx, floorIdx);
+        return Simulation.get(gameStats.activePlayerIdx).elevatorHasFloorRequest(elevatorIdx, floorIdx);
     }
     public double getElevatorFloor(int elevatorIdx) {
-        return Simulation.get().getElevatorFloor(elevatorIdx);
+        return Simulation.get(gameStats.activePlayerIdx).getElevatorFloor(elevatorIdx);
     }
     public boolean isElevatorIsOnFloor(int elevatorIdx, int floorIdx) {
-        return Simulation.get().isElevatorIsOnFloor(elevatorIdx, floorIdx);
+        return Simulation.get(gameStats.activePlayerIdx).isElevatorIsOnFloor(elevatorIdx, floorIdx);
     }
     public boolean isElevatorIsHeadingToFloor(int elevatorIdx, int floorIdx) {
-        return Simulation.get().isElevatorIsHeadingToFloor(elevatorIdx, floorIdx);
+        return Simulation.get(gameStats.activePlayerIdx).isElevatorIsHeadingToFloor(elevatorIdx, floorIdx);
     }
     public boolean isElevatorIdle(int elevatorIdx) {
-        return Simulation.get().isElevatorIdle(elevatorIdx);
+        return Simulation.get(gameStats.activePlayerIdx).isElevatorIdle(elevatorIdx);
     }
     public int getPlayerScore() {
-        return gameStats.levelScore;
+        return getPlayerScore(gameStats.activePlayerIdx);
+    }
+    protected int getPlayerScore(int playerIdx) {
+        return gameStats.levelScores[playerIdx];
     }
     public boolean isGameActive() {
         return (this.gameStats.timeRemaining > 0);
@@ -110,25 +124,38 @@ public class Game implements ActionListener {
     public boolean isGamePaused() {
         return this.gameStats.isPaused;
     }
-    protected ElevatorController getElevatorController() {
-        return elevatorController;
+    public int getPlayerCount() {
+        return (elevatorControllers[1] != null) ? 2 : 1;
+    }
+    public int getActivePlayerIdx() {
+        return this.gameStats.activePlayerIdx;
+    }
+    protected void setActivePlayerIdx(int playerIdx) {
+        this.gameStats.activePlayerIdx = playerIdx;
+    }
+    protected ElevatorController getElevatorController(int playerIdx) {
+        return elevatorControllers[playerIdx];
     }
 
     // Member variables...
     private boolean initialized = false;
     private GameConfig gameConfig = null;
     private GameStats gameStats = new GameStats();
-    private ElevatorController elevatorController = null;
+    private ElevatorController[] elevatorControllers = { null, null };
     private long milliSecondsLastUpdate = System.currentTimeMillis();
     private Timer updateTimer;
 
     // Member functions (methods)...
     protected boolean create(GameConfig config, ElevatorController elevatorController) {
+        return create(config, elevatorController, null);
+    }
+    protected boolean create(GameConfig config, ElevatorController elevatorController1, ElevatorController elevatorController2) {
         // Save off the config & controller...
         this.gameConfig = config;
-        this.elevatorController = elevatorController;
+        this.elevatorControllers[0] = elevatorController1;
+        this.elevatorControllers[1] = elevatorController2;
 
-        // Create the world...
+        // Create the Window (JFrame), which creates the WorldFrame (JPanel), which creates up the World(s)...
         if (!Window.create()) {
             return false;
         }
@@ -143,8 +170,8 @@ public class Game implements ActionListener {
         return true;
     }
 
-    protected void awardPoints(int points) {
-        gameStats.levelScore += points;
+    protected void awardPoints(int playerIdx, int points) {
+        gameStats.levelScores[playerIdx] += points;
     }
 
     protected void setGamePause(boolean isPaused) {
@@ -162,21 +189,30 @@ public class Game implements ActionListener {
         gameStats.reset(gameConfig.gameTimeInSeconds);
 
         // Reset the simulation...
-        Simulation.get().destroyAll();
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            Simulation.get(playerIdx).destroyAll();
+        }
         
         // Create the elevators...
-        for (int i = 0; i < gameConfig.elevatorCount; ++i) {
-            Simulation.get().createElevator(i, 0);
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            for (int i = 0; i < gameConfig.elevatorCount; ++i) {
+                Simulation.get(playerIdx).createElevator(i, 0);
+            }
         }
 
         // Zombies (initial set of them)...
         for (int i = 0; i < gameConfig.floorCount / 2; ++i) {
-            Simulation.get().createZombie(Util.randRangeInt(0, Game.get().getFloorCount() - 1));
+            int spawnFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 1);
+            for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+                Simulation.get(playerIdx).createZombie(spawnFloor);
+            }
             gameStats.timeSinceSpawnedZombie = 0.0f;
         }
 
         // Elevator requests...
-        Simulation.get().createElevatorRequests(gameConfig.floorCount);
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            Simulation.get(playerIdx).createElevatorRequests(gameConfig.floorCount);
+        }
         
         // Do an initial update...
         onLevelUpdate(0, true);
@@ -186,18 +222,25 @@ public class Game implements ActionListener {
     }
     private void onLevelUpdate(double deltaTime, boolean firstUpdate) {
         // Elevator controller update event...
-        ElevatorController elevatorController = Game.get().getElevatorController();
-        if (elevatorController != null) {
-            if (firstUpdate) {
-                elevatorController.onGameStarted(this);
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            ElevatorController controller = getElevatorController(playerIdx);
+            if (controller != null) {
+                gameStats.activePlayerIdx = playerIdx;
+                if (firstUpdate) {
+                    controller.onGameStarted(this);
+                }
+                controller.onUpdate(deltaTime);
             }
-            elevatorController.onUpdate(deltaTime);
         }
+        gameStats.activePlayerIdx = 0;
 
         // Possibly spawn new zombies...
         gameStats.timeSinceSpawnedZombie += deltaTime;
         if (gameStats.timeSinceSpawnedZombie >= gameConfig.zombieSpawnPeriod) {
-            Simulation.get().createZombie(Util.randRangeInt(0, Game.get().getFloorCount() - 1));
+            int spawnFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 1);
+            for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+                Simulation.get(playerIdx).createZombie(spawnFloor);
+            }
             gameStats.timeSinceSpawnedZombie -= gameConfig.zombieSpawnPeriod;
         }
     }
@@ -208,9 +251,15 @@ public class Game implements ActionListener {
         }
 
         // Update it...
-        if (elevatorController != null) {
-            elevatorController.onUpdate(deltaTime);
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            ElevatorController controller = getElevatorController(playerIdx);
+            if (controller != null) {
+                // The controller's don't deal directly with the playerIdx, this takes care of it for them...
+                gameStats.activePlayerIdx = playerIdx;
+                controller.onUpdate(deltaTime);
+            }
         }
+        gameStats.activePlayerIdx = 0;
         
         return true;
     }
@@ -314,7 +363,9 @@ public class Game implements ActionListener {
         }
         
         // Sim manager...
-        Simulation.get().update(deltaTime);
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            Simulation.get(playerIdx).update(deltaTime);
+        }
 
         // Update level logic...
         onLevelUpdate(deltaTime, false);
@@ -323,19 +374,26 @@ public class Game implements ActionListener {
         updateElevatorController(deltaTime);
         
         // Cull anything we can...
-        Simulation.get().cullNotInField();
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            Simulation.get(playerIdx).cullNotInField();
+        }
         
         // Update levelTime...
         double prevTimeRemaining = gameStats.timeRemaining;
         gameStats.timeRemaining = Math.max(gameStats.timeRemaining - deltaTime, 0);
+
+        // End of game event (post to the leaderboard)...
         if ((gameStats.timeRemaining == 0) && (prevTimeRemaining > 0)) {
-            // End of game event (post to the leaderboard)...
-            if ((elevatorController != null) && 
-                (elevatorController.getStudentPeriod() >= 1) && (elevatorController.getStudentPeriod() <= 7) && 
-                (elevatorController.getStudentName().length() > 0)) {
-                // Go ahead and post it (if the game was cloud configured)...
-                if (gameConfig.isCloudConfigured) {
-                    postScoreToLeaderboard(elevatorController.getStudentPeriod(), elevatorController.getStudentName(), gameStats.levelScore);
+            // Go through all players...
+            for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+                ElevatorController controller = getElevatorController(playerIdx);
+                if ((controller != null) && 
+                    (controller.getStudentPeriod() >= 1) && (controller.getStudentPeriod() <= 7) && 
+                    (controller.getStudentName().length() > 0)) {
+                    // Go ahead and post it (if the game was cloud configured)...
+                    if (gameConfig.isCloudConfigured) {
+                        postScoreToLeaderboard(controller.getStudentPeriod(), controller.getStudentName(), getPlayerScore(playerIdx));
+                    }
                 }
             }
         }
@@ -343,36 +401,47 @@ public class Game implements ActionListener {
 
     protected void Draw(Graphics2D g) {
         // Time remaining...
-        Vec2 levelTimePos = Util.toCoordFrame(new Vec2((Window.get().getWidth() - World.FIELD_BORDER_BOT * 2) / 2, World.FIELD_BORDER_TOP / 2));
-        Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));
-        String levelTimeText = isGamePaused() ? "PAUSED" : Util.toIntStringCeil(gameStats.timeRemaining);
-        Color levelTimeColor = isGamePaused() ? Color.BLUE : ((gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130));
-        Color levelTimeBckGndColor = isGamePaused() ? Color.YELLOW : ((gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235));
-        Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
-        Draw.drawRect(g, levelTimePos, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get().getPixelsPerUnit(), 0.15 * 42 / World.get().getPixelsPerUnit());
-        Draw.drawTextCentered(g, levelTimeText, levelTimePos, isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
-
-        // Player...
-        if (elevatorController != null) {
-            Vec2 player1HalfDims = new Vec2(Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
-            Vec2 player1Pos = Vec2.add(Util.toCoordFrame(new Vec2(World.FIELD_BORDER_BOT - 3, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(player1HalfDims.x, 0));
-            String player1Text = "Score: " + gameStats.levelScore;
-            Color player1Color = new Color(50, 180, 50);
-            Color player1BckGndColor = Color.WHITE;
-            Color player1Stroke = new Color(10, 70, 10);
-            Draw.drawRect(g, player1Pos, player1HalfDims, 1.0, player1BckGndColor, player1Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
-            Draw.drawTextCentered(g, elevatorController.getStudentName(), new Vec2(player1Pos.x, player1Pos.y + player1HalfDims.y * 0.55), Draw.FontSize.XSMALL, player1Color, Color.BLACK);
-            Draw.drawTextCentered(g, player1Text, new Vec2(player1Pos.x, player1Pos.y - player1HalfDims.y * 0.35), Draw.FontSize.SMALL, player1Color, Color.BLACK);
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            Vec2 levelTimePos = Util.toCoordFrame(playerIdx, new Vec2((Window.get().getWidth() - World.FIELD_BORDER_BOT * 2) / 2, World.FIELD_BORDER_TOP / 2));
+            Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(playerIdx, LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(playerIdx, LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));
+            String levelTimeText = isGamePaused() ? "PAUSED" : Util.toIntStringCeil(gameStats.timeRemaining);
+            Color levelTimeColor = isGamePaused() ? Color.BLUE : ((gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130));
+            Color levelTimeBckGndColor = isGamePaused() ? Color.YELLOW : ((gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235));
+            Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
+            Draw.drawRect(playerIdx, g, levelTimePos, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get(0).getPixelsPerUnit(), 0.15 * 42 / World.get(0).getPixelsPerUnit());
+            Draw.drawTextCentered(playerIdx, g, levelTimeText, levelTimePos, isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
         }
 
-        // Winner UI...
+        // Player(s)...
+        for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
+            ElevatorController controller = getElevatorController(playerIdx);
+            if (controller != null) {
+                Vec2 playerHalfDims = new Vec2(Util.toCoordFrameLength(playerIdx, PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(playerIdx, PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
+                double playerPosX = (playerIdx == 0) ? (World.FIELD_BORDER_BOT - 3) : (Window.get().getWidth() - World.FIELD_BORDER_BOT * 2 - 3 - PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x * 2);
+                Vec2 playerPos = Vec2.add(Util.toCoordFrame(playerIdx, new Vec2(playerPosX, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(playerHalfDims.x, 0));
+                String playerText = "Score: " + getPlayerScore(playerIdx);
+                Color playerColor = new Color(50, 180, 50);
+                Color playerBckGndColor = Color.WHITE;
+                Color playerStroke = new Color(10, 70, 10);
+                Draw.drawRect(playerIdx, g, playerPos, playerHalfDims, 1.0, playerBckGndColor, playerStroke, 0.05 * 42 / World.get(0).getPixelsPerUnit(), 0.1 * 42 / World.get(0).getPixelsPerUnit());
+                Draw.drawTextCentered(playerIdx, g, controller.getStudentName(), new Vec2(playerPos.x, playerPos.y + playerHalfDims.y * 0.55), Draw.FontSize.XSMALL, playerColor, Color.BLACK);
+                Draw.drawTextCentered(playerIdx, g, playerText, new Vec2(playerPos.x, playerPos.y - playerHalfDims.y * 0.35), Draw.FontSize.SMALL, playerColor, Color.BLACK);
+            }
+        }
+
+        // End of Game UI...
         if (gameStats.timeRemaining == 0) {
-            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(), 0.5);
-            String finalText = ("Final Score: " + gameStats.levelScore);
+            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits((getPlayerCount() > 1) ? 1 : 0), 0.5);
             Color textColor = Color.BLUE;
             Color bckGndColor = new Color(230, 230, 230);
-            Draw.drawRect(g, finalTextPos, new Vec2(3.5, 0.5), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
-            Draw.drawTextCentered(g, finalText, finalTextPos, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
+            String finalText = ("Final Score: " + getPlayerScore(0));
+            if (getPlayerCount() > 1) {
+                // Two player mode, declare a winner...
+                finalText = (getPlayerScore(0) > getPlayerScore(1)) ? ("Winner: " + getElevatorController(0).getStudentName()) :
+                                (getPlayerScore(1) > getPlayerScore(0)) ? ("Winner: " + getElevatorController(1).getStudentName()) : "TIE GAME!!!";
+            }
+            Draw.drawRect(0, g, finalTextPos, new Vec2(3.5, 0.5), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get(0).getPixelsPerUnit(), 0.1 * 42 / World.get(0).getPixelsPerUnit());
+            Draw.drawTextCentered(0, g, finalText, finalTextPos, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
         }
     }
 }

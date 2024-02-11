@@ -5,20 +5,22 @@ import java.util.EnumSet;
 
 public class Simulation {
     // Singleton...
-    private static Simulation instance = null;
-    protected static synchronized Simulation get() {
-        if (instance == null)
-            instance = new Simulation();
-        return instance;
+    private static Simulation[] instances = { null, null };
+    protected static synchronized Simulation get(int playerIdx) {
+        if (instances[playerIdx] == null)
+            instances[playerIdx] = new Simulation(playerIdx);
+        return instances[playerIdx];
     }
 
     // Member variables...
+    private int playerIdx = -1;
     private ArrayList<Elevator> elevators = new ArrayList<Elevator>();
     private ArrayList<Zombie> zombies = new ArrayList<Zombie>();
     private ArrayList<EnumSet<ElevatorController.Direction>> elevatorRequests = new ArrayList<EnumSet<ElevatorController.Direction>>();
 
     // Constructor...
-    protected Simulation() {
+    protected Simulation(int playerIdx) {
+        this.playerIdx = playerIdx;
     }
 
     // Accessors/Query functions...
@@ -40,7 +42,12 @@ public class Simulation {
         elevatorRequests.get(floorIdx).add(direction);
 
         // Event...
-        Game.get().getElevatorController().onElevatorRequestChanged(floorIdx, direction, true);
+        ElevatorController controller = Game.get().getElevatorController(playerIdx);
+        if (controller != null) {
+            Game.get().setActivePlayerIdx(playerIdx);
+            controller.onElevatorRequestChanged(floorIdx, direction, true);
+            Game.get().setActivePlayerIdx(0);
+        }
     }
     protected void remElevatorRequest(int floorIdx, ElevatorController.Direction direction) {
         if ((floorIdx < 0) || (floorIdx >= elevatorRequests.size())) {
@@ -52,7 +59,12 @@ public class Simulation {
         elevatorRequests.get(floorIdx).remove(direction);
 
         // Event...
-        Game.get().getElevatorController().onElevatorRequestChanged(floorIdx, direction, false);
+        ElevatorController controller = Game.get().getElevatorController(playerIdx);
+        if (controller != null) {
+            Game.get().setActivePlayerIdx(playerIdx);
+            controller.onElevatorRequestChanged(floorIdx, direction, false);
+            Game.get().setActivePlayerIdx(0);
+        }
     }
     protected boolean elevatorHasFloorRequest(int elevatorIdx, int floorIdx) {
         if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
@@ -115,13 +127,13 @@ public class Simulation {
     
     // Member functions (methods)...
     protected Elevator createElevator(int elevatorIdx, int initialFloor) {
-        Elevator elevator = new Elevator(elevatorIdx, (double)initialFloor, Game.get().getFloorCount());
+        Elevator elevator = new Elevator(playerIdx, elevatorIdx, (double)initialFloor, Game.get().getFloorCount());
         this.elevators.add(elevator);
         return elevator;
     }
     
     protected Zombie createZombie(int initialFloor) {
-        Zombie zombie = new Zombie(initialFloor);
+        Zombie zombie = new Zombie(playerIdx, initialFloor);
         this.zombies.add(zombie);
         return zombie;
     }

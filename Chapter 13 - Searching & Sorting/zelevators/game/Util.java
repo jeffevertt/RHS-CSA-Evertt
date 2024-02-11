@@ -60,64 +60,64 @@ public class Util {
     }
 
     // Coordinate frame helpers...
-    public static double toCoordFrameX(double posX) {
-        posX = (posX - World.get().getOrigin().x) / World.get().getPixelsPerUnit();
+    public static double toCoordFrameX(int playerIdx, double posX) {
+        posX = (posX - World.get(playerIdx).getOrigin().x) / World.get(playerIdx).getPixelsPerUnit();
         return posX;
     }
-    public static double toCoordFrameY(double posY) {
-        posY = -(posY - World.get().getOrigin().y) / World.get().getPixelsPerUnit();
+    public static double toCoordFrameY(int playerIdx, double posY) {
+        posY = -(posY - World.get(playerIdx).getOrigin().y) / World.get(playerIdx).getPixelsPerUnit();
         return posY;
     }
-    public static Vec2 toCoordFrame(Vec2 pos) {
-        Vec2 origin = World.get().getOrigin();
-        return new Vec2((pos.x-origin.x) / World.get().getPixelsPerUnit(), -(pos.y-origin.y) / World.get().getPixelsPerUnit());
+    public static Vec2 toCoordFrame(int playerIdx, Vec2 pos) {
+        Vec2 origin = World.get(playerIdx).getOrigin();
+        return new Vec2((pos.x-origin.x) / World.get(playerIdx).getPixelsPerUnit(), -(pos.y-origin.y) / World.get(playerIdx).getPixelsPerUnit());
     }
-    public static double toCoordFrameLength(double len) {
-        return len / World.get().getPixelsPerUnit();
+    public static double toCoordFrameLength(int playerIdx, double len) {
+        return len / World.get(playerIdx).getPixelsPerUnit();
     }
-    public static double toPixelsX(double posX) {
-        Vec2 origin = World.get().getOrigin();
-        posX = posX * World.get().getPixelsPerUnit() + origin.x;
+    public static double toPixelsX(int playerIdx, double posX) {
+        Vec2 origin = World.get(playerIdx).getOrigin();
+        posX = posX * World.get(playerIdx).getPixelsPerUnit() + origin.x;
         return posX;
     }
-    public static double toPixelsY(double posY) {
-        Vec2 origin = World.get().getOrigin();
-        posY = -posY * World.get().getPixelsPerUnit() + origin.y;
+    public static double toPixelsY(int playerIdx, double posY) {
+        Vec2 origin = World.get(playerIdx).getOrigin();
+        posY = -posY * World.get(playerIdx).getPixelsPerUnit() + origin.y;
         return posY;
     }
-    public static int toPixelsXInt(double posX) {
-        Vec2 origin = World.get().getOrigin();
-        posX = posX * World.get().getPixelsPerUnit() + origin.x;
+    public static int toPixelsXInt(int playerIdx, double posX) {
+        Vec2 origin = World.get(playerIdx).getOrigin();
+        posX = posX * World.get(playerIdx).getPixelsPerUnit() + origin.x;
         return (int)Math.round(posX);
     }
-    public static int toPixelsYInt(double posY) {
-        Vec2 origin = World.get().getOrigin();
-        posY = -posY * World.get().getPixelsPerUnit() + origin.y;
+    public static int toPixelsYInt(int playerIdx, double posY) {
+        Vec2 origin = World.get(playerIdx).getOrigin();
+        posY = -posY * World.get(playerIdx).getPixelsPerUnit() + origin.y;
         return (int)Math.round(posY);
     }    
-    public static Vec2 toPixels(Vec2 pos) {
-        Vec2 origin = World.get().getOrigin();
-        return new Vec2(pos.x * World.get().getPixelsPerUnit() + origin.x, -pos.y * World.get().getPixelsPerUnit() + origin.y);
+    public static Vec2 toPixels(int playerIdx, Vec2 pos) {
+        Vec2 origin = World.get(playerIdx).getOrigin();
+        return new Vec2(pos.x * World.get(playerIdx).getPixelsPerUnit() + origin.x, -pos.y * World.get(playerIdx).getPixelsPerUnit() + origin.y);
     }
-    public static Vec2 toPixelDims(Vec2 dims) {
-        return new Vec2(dims.x * World.get().getPixelsPerUnit(), dims.y * World.get().getPixelsPerUnit());
+    public static Vec2 toPixelDims(int playerIdx, Vec2 dims) {
+        return new Vec2(dims.x * World.get(playerIdx).getPixelsPerUnit(), dims.y * World.get(playerIdx).getPixelsPerUnit());
     }
-    public static double toPixelsLength(double len) {
-        return len * World.get().getPixelsPerUnit();
+    public static double toPixelsLength(int playerIdx, double len) {
+        return len * World.get(playerIdx).getPixelsPerUnit();
     }
-    public static int toPixelsLengthInt(double len) {
-        return (int)Math.round(len * World.get().getPixelsPerUnit());
+    public static int toPixelsLengthInt(int playerIdx, double len) {
+        return (int)Math.round(len * World.get(playerIdx).getPixelsPerUnit());
     }
-    public static Vec2 clampToClosestHalfUnit(Vec2 point) {
+    public static Vec2 clampToClosestHalfUnit(int playerIdx, Vec2 point) {
         return new Vec2(Math.round(point.x - 0.5) + 0.5, Math.round(point.y - 0.5) + 0.5);
     }
-    public static Vec2 maxCoordFrameUnits() {
-        return new Vec2(World.get().getCanvasSize().x / World.get().getPixelsPerUnit(), World.get().getCanvasSize().y / World.get().getPixelsPerUnit());
+    public static Vec2 maxCoordFrameUnits(int playerIdx) {
+        return new Vec2(World.get(playerIdx).getCanvasSize().x / World.get(playerIdx).getPixelsPerUnit(), World.get(playerIdx).getCanvasSize().y / World.get(playerIdx).getPixelsPerUnit());
     }
-    public static Vec2 maxHalfUnitsInField() {
-        Vec2 maxHalfUnits = maxCoordFrameUnits();
-        maxHalfUnits = clampToClosestHalfUnit(maxHalfUnits);
-        if (!isInsideField(maxHalfUnits, 0.2)) {
+    public static Vec2 maxHalfUnitsInField(int playerIdx) {
+        Vec2 maxHalfUnits = maxCoordFrameUnits(playerIdx);
+        maxHalfUnits = clampToClosestHalfUnit(playerIdx, maxHalfUnits);
+        if (!isInsideField(playerIdx, maxHalfUnits, 0.2)) {
             maxHalfUnits.subtract(new Vec2(1, 1));
         }
         return maxHalfUnits;
@@ -155,14 +155,14 @@ public class Util {
         double dstSqr = Vec2.distanceSqr(circlePos, point);
         return (dstSqr < circleRad * circleRad);
     }
-    public static boolean isInsideField(Vec2 point) {
-        return isInsideField(point, 0);
+    public static boolean isInsideField(int playerIdx, Vec2 point) {
+        return isInsideField(playerIdx, point, 0);
     }
-    public static boolean isInsideField(Vec2 point, double buffer) {
+    public static boolean isInsideField(int playerIdx, Vec2 point, double buffer) {
         if ((point.x <= buffer) || (point.y <= buffer)) {
             return false;
         }
-        if ((point.x >= toCoordFrameLength(World.get().getCanvasSize().x) - buffer) || (point.y >= toCoordFrameLength(World.get().getCanvasSize().y) - buffer)) {
+        if ((point.x >= toCoordFrameLength(playerIdx, World.get(playerIdx).getCanvasSize().x) - buffer) || (point.y >= toCoordFrameLength(playerIdx, World.get(playerIdx).getCanvasSize().y) - buffer)) {
             return false;
         }
         return true;
