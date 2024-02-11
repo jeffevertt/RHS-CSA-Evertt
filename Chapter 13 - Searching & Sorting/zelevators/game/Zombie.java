@@ -39,7 +39,7 @@ public class Zombie extends GameObject {
     private Vec2 halfDims = null;
 
     // Constructors...
-    protected Zombie(int playerIdx, int initialFloor) {
+    protected Zombie(int playerIdx, int initialFloor, int targetFloor) {
         // Super...
         super(playerIdx);
 
@@ -47,16 +47,13 @@ public class Zombie extends GameObject {
         this.playerIdx = playerIdx;
         state = State.Entering;
         currentFloor = initialFloor;
+        this.targetFloor = targetFloor;
 
-        // Init...
+        // Init (remove random in 2 player mode)...
         halfDims = Vec2.multiply(NOMINAL_HALFDIMS, Util.randRange(0.9, 1.0));
-        pos = new Vec2(halfDims.x * Util.randRange(0.75, 1.25), World.FLOOR_HEIGHT * currentFloor + halfDims.y + VERTICAL_OFFSET);
-        waitAreaOffset = World.ZOMBIE_WAITING_AREA_MAX_OFFSET * Util.randRange(0.75, 1.25);
-        walkSpeedScalar = Util.randRange(0.9, 1.1);
-
-        // Figure out where we're going (random target floor)...
-        targetFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 2);
-        targetFloor = (targetFloor < currentFloor) ? targetFloor : (targetFloor + 1);
+        pos = new Vec2(halfDims.x * ((Game.get().getPlayerCount() > 1) ? 1.0 : Util.randRange(0.75, 1.25)), World.FLOOR_HEIGHT * currentFloor + halfDims.y + VERTICAL_OFFSET);
+        waitAreaOffset = World.ZOMBIE_WAITING_AREA_MAX_OFFSET * ((Game.get().getPlayerCount() > 1) ? 1.0 : Util.randRange(0.75, 1.25));
+        walkSpeedScalar = (Game.get().getPlayerCount() > 1) ? 1.0 : Util.randRange(0.9, 1.1); 
 
         // Texture...
         try {
@@ -65,6 +62,13 @@ public class Zombie extends GameObject {
         } 
         catch (IOException e) {
         }
+    }
+
+    // Static helpers...
+    protected static int calcRandomTargetFloor(int currentFloor) {
+        int targetFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 2);
+        targetFloor = (targetFloor < currentFloor) ? targetFloor : (targetFloor + 1);
+        return targetFloor;
     }
 
     // Accessors...

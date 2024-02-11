@@ -27,6 +27,7 @@ public class Game implements ActionListener {
     // Nested classes...
     protected class GameStats {
         public boolean isPaused = false;
+        public boolean hasHadFirstUpdate = false;
         public double timeRemaining = 0;
         public int gameTimeInSecondsMax;
         public int[] levelScores = new int[2];
@@ -35,6 +36,7 @@ public class Game implements ActionListener {
 
         public void reset(int gameTimeInSeconds) {
             isPaused = false;
+            hasHadFirstUpdate = false;
             timeRemaining = gameTimeInSeconds;
             gameTimeInSecondsMax = gameTimeInSeconds;
             levelScores[0] = 0;
@@ -121,6 +123,9 @@ public class Game implements ActionListener {
     public boolean isGameActive() {
         return (this.gameStats.timeRemaining > 0);
     }
+    public boolean hasGameHadFirstUpdate() {
+        return this.gameStats.hasHadFirstUpdate;
+    }
     public boolean isGamePaused() {
         return this.gameStats.isPaused;
     }
@@ -203,8 +208,9 @@ public class Game implements ActionListener {
         // Zombies (initial set of them)...
         for (int i = 0; i < gameConfig.floorCount / 2; ++i) {
             int spawnFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 1);
+            int targetFloor = Zombie.calcRandomTargetFloor(spawnFloor);
             for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
-                Simulation.get(playerIdx).createZombie(spawnFloor);
+                Simulation.get(playerIdx).createZombie(spawnFloor, targetFloor);
             }
             gameStats.timeSinceSpawnedZombie = 0.0f;
         }
@@ -238,15 +244,19 @@ public class Game implements ActionListener {
         gameStats.timeSinceSpawnedZombie += deltaTime;
         if (gameStats.timeSinceSpawnedZombie >= gameConfig.zombieSpawnPeriod) {
             int spawnFloor = Util.randRangeInt(0, Game.get().getFloorCount() - 1);
+            int targetFloor = Zombie.calcRandomTargetFloor(spawnFloor);
             for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
-                Simulation.get(playerIdx).createZombie(spawnFloor);
+                Simulation.get(playerIdx).createZombie(spawnFloor, targetFloor);
             }
             gameStats.timeSinceSpawnedZombie -= gameConfig.zombieSpawnPeriod;
         }
+
+        // First update...
+        gameStats.hasHadFirstUpdate |= firstUpdate;
     }
     private boolean updateElevatorController(double deltaTime) {
         // Don't call if we are paused...
-        if (isGamePaused()) {
+        if (isGamePaused() || !isGameActive()) {
             return true;
         }
 
@@ -265,12 +275,16 @@ public class Game implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent evt) {
-        Game.get().update();
+        if (hasGameHadFirstUpdate()) {
+            Game.get().update();
+        }
     }
 
     protected static GameConfig readGameConfigFromServer() {
+        // Default config...
         GameConfig gameConfig = new GameConfig();
 
+        // Try to read it from the server...
         try {
             // Data...
             String jsonPayload = "{\"TableName\":\"classLeaderboardTable\",\"EventType\":\"getZelevatorConfig\"}";
@@ -431,7 +445,8 @@ public class Game implements ActionListener {
 
         // End of Game UI...
         if (gameStats.timeRemaining == 0) {
-            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits((getPlayerCount() > 1) ? 1 : 0), 0.5);
+            int playerIdx = (getPlayerCount() == 1) ? 0 : (getPlayerScore(1) > getPlayerScore(0) ? 1 : 0);
+            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(playerIdx), 0.5);
             Color textColor = Color.BLUE;
             Color bckGndColor = new Color(230, 230, 230);
             String finalText = ("Final Score: " + getPlayerScore(0));
@@ -440,8 +455,8 @@ public class Game implements ActionListener {
                 finalText = (getPlayerScore(0) > getPlayerScore(1)) ? ("Winner: " + getElevatorController(0).getStudentName()) :
                                 (getPlayerScore(1) > getPlayerScore(0)) ? ("Winner: " + getElevatorController(1).getStudentName()) : "TIE GAME!!!";
             }
-            Draw.drawRect(0, g, finalTextPos, new Vec2(3.5, 0.5), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get(0).getPixelsPerUnit(), 0.1 * 42 / World.get(0).getPixelsPerUnit());
-            Draw.drawTextCentered(0, g, finalText, finalTextPos, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
+            Draw.drawRect(playerIdx, g, finalTextPos, new Vec2(3.5, 0.5), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get(0).getPixelsPerUnit(), 0.1 * 42 / World.get(0).getPixelsPerUnit());
+            Draw.drawTextCentered(playerIdx, g, finalText, finalTextPos, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
         }
     }
 }

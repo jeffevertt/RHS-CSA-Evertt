@@ -132,8 +132,8 @@ public class Simulation {
         return elevator;
     }
     
-    protected Zombie createZombie(int initialFloor) {
-        Zombie zombie = new Zombie(playerIdx, initialFloor);
+    protected Zombie createZombie(int initialFloor, int targetFloor) {
+        Zombie zombie = new Zombie(playerIdx, initialFloor, targetFloor);
         this.zombies.add(zombie);
         return zombie;
     }
