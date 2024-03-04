@@ -220,7 +220,7 @@ public class Game implements ActionListener {
     private void onLevelUpdate(double deltaTime, boolean firstUpdate) {
 		// Level specific objects...
         int spawnPowerUpCount = 3;
-        boolean powerUpsOnlyPointsAndSpeed = true;
+        boolean powerUpsOnlyPointsAndSpeed = false;
 		int spawnTargetCount = 3;
         boolean spawnInCenterOfField = (gameStats.playerCount > 1) && firstUpdate;
 		
