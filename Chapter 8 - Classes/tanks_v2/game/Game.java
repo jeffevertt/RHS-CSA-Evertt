@@ -23,12 +23,14 @@ public class Game implements ActionListener {
     public static final int POINTS_HIT_OTHER        = 10;
     public static final int POINTS_HIT_TARGET       = 25;
     public static final int POINTS_POWERUP_PTS      = 25;
-    public static final int POINTS_POWERUP_RANGE    = 20;   // Percentile increase
-    public static final int POINTS_POWERUP_SPEED    = 15;   // Percentile increase
+    public static final int POINTS_POWERUP_RANGE    = 10;   // Percentile increase
+    public static final int POINTS_POWERUP_SPEED    = 10;   // Percentile increase
 
     private static final int UPDATE_TIMER_PERIOD    = 16;   // In milliseconds
     private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.5);
     private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, (double)World.FIELD_BORDER_TOP * 0.55);
+
+    public static final int TEST_HARNESS_SUPPORT    = 0;  // When non-zero, will run the specified timeSteps at a rate of 60 FPS
 
     // Nested classes...
     protected class GameStats {
@@ -311,7 +313,21 @@ public class Game implements ActionListener {
         long milliSecondsNow = System.currentTimeMillis();
         double deltaTime = (double)(milliSecondsNow - milliSecondsLastUpdate) / 1000;
         milliSecondsLastUpdate = milliSecondsNow;
-        
+
+        // Game update...
+        if (TEST_HARNESS_SUPPORT <= 0) {
+            updateGameInternal(deltaTime);
+        }
+        else {
+            // Test harness support...
+            for (int i = 0; i < TEST_HARNESS_SUPPORT; i++) {
+                updateGameInternal(1 / 60.0f);
+            }
+        }
+    }
+
+    private void updateGameInternal(double deltaTime)
+    {
         // Clamp deltaTime (slow down the sim, if needed)...
         deltaTime = Math.min(deltaTime, 0.1);
         if (gameStats.timeRemaining == 0) {
@@ -360,48 +376,48 @@ public class Game implements ActionListener {
 
     protected void Draw(Graphics2D g) {
         // Time remaining...
-        Vec2 levelTimePos = Util.toCoordFrame(new Vec2((Window.get().getWidth() - World.FIELD_BORDER * 2) / 2, World.FIELD_BORDER_TOP / 2 + 5));
+        Vec2 levelTimePos = Util.toCoordFrame(new Vec2((Window.get().getWidth() - World.FIELD_BORDER * Draw.getUIScale() * 2) / 2, World.FIELD_BORDER_TOP * Draw.getUIScale() / 2 + 5 * Draw.getUIScale()));
         Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));
         String levelTimeText = isGamePaused() ? "PAUSED" : Util.toIntStringCeil(gameStats.timeRemaining);
         Color levelTimeColor = isGamePaused() ? Color.BLUE : ((gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130));
         Color levelTimeBckGndColor = isGamePaused() ? Color.YELLOW : ((gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235));
         Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
-        Draw.drawRect(g, levelTimePos, 0, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get().getPixelsPerUnit(), 0.15 * 42 / World.get().getPixelsPerUnit());
-		Draw.drawTextCentered(g, levelTimeText, levelTimePos, 0, isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
+        Draw.drawRect(g, levelTimePos, 0, levelTimeHalfDims, Draw.getUIScale(), levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get().getPixelsPerUnit(), 0.15 * 42 / World.get().getPixelsPerUnit());
+		Draw.drawTextCentered(g, levelTimeText, levelTimePos, 0, Draw.getUIScale(), isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
 
         // Player 1...
         Tank tank = getTank(0);
         if (tank != null) {
             Vec2 player1HalfDims = new Vec2(Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
-            Vec2 player1Pos = Vec2.add(Util.toCoordFrame(new Vec2(World.FIELD_BORDER - 3, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(player1HalfDims.x, 0));
+            Vec2 player1Pos = Vec2.add(Util.toCoordFrame(new Vec2(World.FIELD_BORDER * Draw.getUIScale() - 3 * Draw.getUIScale(), World.FIELD_BORDER_TOP / 2 * Draw.getUIScale() + 6 * Draw.getUIScale())), new Vec2(player1HalfDims.x * Draw.getUIScale(), 0));
             String player1Text = "Score: " + gameStats.levelScore;
             Color player1Color = new Color(50, 180, 50);
             Color player1BckGndColor = Util.colorLerp(new Color(220, 245, 220), new Color(120, 165, 120), 1.0f - tank.getUIStats().timeSinceFeedbackCodeClean * 2);
             player1BckGndColor = Util.colorLerp(player1BckGndColor, new Color(165, 100, 100), 1.0f - tank.getUIStats().timeSinceFeedbackCodeError * 0.5);
             Color player1Stroke = new Color(10, 70, 10);
-            Draw.drawRect(g, player1Pos, 0, player1HalfDims, 1.0, player1BckGndColor, player1Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
-            Draw.drawTextCentered(g, tank.getPlayerName(), new Vec2(player1Pos.x, player1Pos.y + player1HalfDims.y * 0.55), 0, Draw.FontSize.XSMALL, player1Color, Color.BLACK);
-            Draw.drawTextCentered(g, player1Text, new Vec2(player1Pos.x, player1Pos.y - player1HalfDims.y * 0.35), 0, Draw.FontSize.SMALL, player1Color, Color.BLACK);
+            Draw.drawRect(g, player1Pos, 0, player1HalfDims, Draw.getUIScale(), player1BckGndColor, player1Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
+            Draw.drawTextCentered(g, tank.getPlayerName(), new Vec2(player1Pos.x, player1Pos.y + player1HalfDims.y * 0.55 * Draw.getUIScale()), 0, Draw.getUIScale(), Draw.FontSize.XSMALL, player1Color, Color.BLACK);
+            Draw.drawTextCentered(g, player1Text, new Vec2(player1Pos.x, player1Pos.y - player1HalfDims.y * 0.35 * Draw.getUIScale()), 0, Draw.getUIScale(), Draw.FontSize.SMALL, player1Color, Color.BLACK);
         }
 		
         // Player 2...
         tank = getTank(1);
         if ((tank != null) && (gameStats.playerCount > 1)) {
             Vec2 player2HalfDims = new Vec2(Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
-            Vec2 player2Pos = Vec2.subtract(Util.toCoordFrame(new Vec2(Window.get().getWidth() - World.FIELD_BORDER - 13, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(player2HalfDims.x, 0));
+            Vec2 player2Pos = Vec2.subtract(Util.toCoordFrame(new Vec2(Window.get().getWidth() - World.FIELD_BORDER - 13 * Draw.getUIScale(), World.FIELD_BORDER_TOP / 2 * Draw.getUIScale() + 6 * Draw.getUIScale())), new Vec2(player2HalfDims.x * Draw.getUIScale(), 0));
             String player2Text = "Score: " + gameStats.levelScore2;
             Color player2Color = new Color(50, 50, 180);
             Color player2BckGndColor = Util.colorLerp(new Color(220, 220, 245), new Color(120, 120, 165), 1.0f - tank.getUIStats().timeSinceFeedbackCodeClean * 2);
             player2BckGndColor = Util.colorLerp(player2BckGndColor, new Color(165, 100, 100), 1.0f - tank.getUIStats().timeSinceFeedbackCodeError * 0.5);
             Color player2Stroke = new Color(10, 10, 70);
-            Draw.drawRect(g, player2Pos, 0, player2HalfDims, 1.0, player2BckGndColor, player2Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
-            Draw.drawTextCentered(g, tank.getPlayerName(), new Vec2(player2Pos.x, player2Pos.y + player2HalfDims.y * 0.55), 0, Draw.FontSize.XSMALL, player2Color, Color.BLACK);
-            Draw.drawTextCentered(g, player2Text, new Vec2(player2Pos.x, player2Pos.y - player2HalfDims.y * 0.35), 0, Draw.FontSize.SMALL, player2Color, Color.BLACK);
+            Draw.drawRect(g, player2Pos, 0, player2HalfDims, Draw.getUIScale(), player2BckGndColor, player2Stroke, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
+            Draw.drawTextCentered(g, tank.getPlayerName(), new Vec2(player2Pos.x, player2Pos.y + player2HalfDims.y * 0.55 * Draw.getUIScale()), 0, Draw.getUIScale(), Draw.FontSize.XSMALL, player2Color, Color.BLACK);
+            Draw.drawTextCentered(g, player2Text, new Vec2(player2Pos.x, player2Pos.y - player2HalfDims.y * 0.35 * Draw.getUIScale()), 0, Draw.getUIScale(), Draw.FontSize.SMALL, player2Color, Color.BLACK);
         }
 
         // Winner UI...
         if (gameStats.timeRemaining == 0) {
-            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(), 0.5);
+            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(), 0.5 * Draw.getUIScale());
             String finalText = (gameStats.playerCount == 1) ? ("Final Score: " + gameStats.levelScore) :
                                     ((gameStats.levelScore == gameStats.levelScore2) ? "TIE GAME!" :  
                                         ((gameStats.levelScore > gameStats.levelScore2) ? (getTank(0).getPlayerName() + " WINS!") : (getTank(1).getPlayerName() + " Wins!")));
@@ -411,8 +427,8 @@ public class Game implements ActionListener {
             Color bckGndColor = (gameStats.playerCount == 1) ? new Color(220, 245, 220) : 
                                     ((gameStats.levelScore == gameStats.levelScore2) ? Color.LIGHT_GRAY :  
                                         ((gameStats.levelScore > gameStats.levelScore2) ? new Color(220, 245, 220) : new Color(220, 220, 245)));
-            Draw.drawRect(g, finalTextPos, 0, new Vec2(7.5, 1), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
-            Draw.drawTextCentered(g, finalText, finalTextPos, 0, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
+            Draw.drawRect(g, finalTextPos, 0, new Vec2(7.5, 1), Draw.getUIScale(), bckGndColor, Color.BLACK, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
+            Draw.drawTextCentered(g, finalText, finalTextPos, 0, Draw.getUIScale(), Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
         }
     }
 }

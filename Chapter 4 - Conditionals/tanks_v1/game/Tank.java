@@ -34,7 +34,7 @@ public class Tank extends GameObject {
 	protected static final Color TANK_COLOR_TURRET_FILL_2 = new Color(44, 44, 120);
 	protected static final Color TANK_COLOR_STROKE = Color.BLACK;	
 
-	public final static double STARTING_AMMO_RANGE = 8;
+	public final static double STARTING_AMMO_RANGE = 6;
 	public final static double STARTING_MOVE_SPEED = 2.5;   // units per second
 	public final static double STARTING_TURN_SPEED = 90;	// degrees per second
 
@@ -529,7 +529,7 @@ public class Tank extends GameObject {
         Vec2 drawPosPixels = Util.toPixels(drawPos);		
 
 		// Transform from local to world (includes rotation about that center)...
-		AffineTransform transform = new AffineTransform();
+		AffineTransform transform = Draw.getBaseTransform();
 		transform.translate(drawPosPixels.x, drawPosPixels.y);
 		transform.rotate(Math.toRadians(-this.dir.angle()));
 

@@ -22,8 +22,21 @@ public class Draw {
     // Static member variables...
     private static Font fontDefault;
     private static Font fonts[] = { null, null, null, null, null, null };
+    private static AffineTransform baseTransform = new AffineTransform();
 
     // Functions...
+    public static AffineTransform getBaseTransform() {
+        return new AffineTransform(baseTransform);
+    }
+    public static double getBaseTransformScale() {
+        return baseTransform.getScaleX();
+    }
+    public static void setBaseTransform(AffineTransform transform) {
+        baseTransform = transform;
+    }
+    public static double getUIScale() {
+        return (double)Window.get().getWidth() / Window.DEFAULT_WINDOW_WIDTH;
+    }
     public static void beginRender(Graphics2D g) {
         // Setup fonts, if not already done...
         if (fontDefault != null) {
@@ -39,7 +52,7 @@ public class Draw {
     }
     public static void resetRenderState(Graphics2D g) {
         // Reset render state...
-        g.setTransform(new AffineTransform());
+        g.setTransform(Draw.getBaseTransform());
     }
     public static FontSize fontSizeFromScale(double scale) {
         scale *= World.get(0).getPixelsPerUnit() / 42;
@@ -63,7 +76,8 @@ public class Draw {
     public static void drawRectShadow(int playerIdx, Graphics2D g, Vec2 pos, Vec2 halfDims, double scale, Color colorShadow, double roundedRadius) {
         // Setup transform...
         Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
-        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y);
+        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x * Draw.getBaseTransformScale(), drawPosPixels.y * Draw.getBaseTransformScale());
+        transform.scale(Draw.getBaseTransformScale(), Draw.getBaseTransformScale());
 
         // Draw it...
         drawRectShadow(playerIdx, g, transform, halfDims, scale, colorShadow, roundedRadius, Vec2.zero());
@@ -82,7 +96,8 @@ public class Draw {
     public static void drawRect(int playerIdx, Graphics2D g, Vec2 pos, Vec2 halfDims, double scale, Color colorFill, Color colorStroke, double strokeWidth, double roundedRadius) {
         // Setup transform...
         Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
-        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y);
+        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x * Draw.getBaseTransformScale(), drawPosPixels.y * Draw.getBaseTransformScale());
+        transform.scale(Draw.getBaseTransformScale(), Draw.getBaseTransformScale());
 
         // Draw it..
         drawRect(playerIdx, g, transform, halfDims, scale, colorFill, colorStroke, strokeWidth, roundedRadius, Vec2.zero());
@@ -107,7 +122,7 @@ public class Draw {
     }
     public static void drawImage(int playerIdx, Graphics2D g, BufferedImage image, Vec2 pos, Vec2 halfDims, double scale) {
         // Transform...
-        g.setTransform(new AffineTransform());
+        g.setTransform(Draw.getBaseTransform());
         
         // Setup...
         Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
@@ -122,7 +137,7 @@ public class Draw {
         Vec2 halfDimsPixels = Util.toPixelDims(playerIdx, Vec2.multiply(halfDims, scale));
 
         // Transform...
-        AffineTransform transform = new AffineTransform();
+        AffineTransform transform = getBaseTransform();
         transform.translate(drawPosPixels.x - halfDimsPixels.x, drawPosPixels.y - halfDimsPixels.y);
         transform.rotate(Math.toRadians(rotDeg));
         g.setTransform(transform);
@@ -130,13 +145,15 @@ public class Draw {
         // Draw it...
         g.drawImage(image, 0, 0, (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), null);
     }
-    public static void drawTextCentered(int playerIdx, Graphics2D g, String text, Vec2 pos, FontSize fontSize, Color color) {
-        drawTextCentered(playerIdx, g, text, pos, fontSize, color, null);
+    public static void drawTextCentered(int playerIdx, Graphics2D g, String text, Vec2 pos, double scale, FontSize fontSize, Color color) {
+        drawTextCentered(playerIdx, g, text, pos, scale, fontSize, color, null);
     }
-    public static void drawTextCentered(int playerIdx, Graphics2D g, String text, Vec2 pos, FontSize fontSize, Color color, Color dropShadowColor) {
+    public static void drawTextCentered(int playerIdx, Graphics2D g, String text, Vec2 pos, double scale, FontSize fontSize, Color color, Color dropShadowColor) {
         // Basics...
         Vec2 drawPosPixels = Util.toPixels(playerIdx, pos);
-        g.setTransform(AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y));
+        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x * Draw.getBaseTransformScale(), drawPosPixels.y * Draw.getBaseTransformScale());
+        transform.scale(Draw.getBaseTransformScale() * scale, Draw.getBaseTransformScale() * scale);
+        g.setTransform(transform);
         g.setFont(fonts[fontSize.ordinal()]);
 
         // Width...

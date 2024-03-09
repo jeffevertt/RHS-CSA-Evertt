@@ -32,7 +32,7 @@ public class Window extends JFrame implements KeyListener {
         setMinimumSize(new Dimension(DEFAULT_WINDOW_WIDTH / 2, DEFAULT_WINDOW_HEIGHT / 2));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        addKeyListener(this);     
+        addKeyListener(this);
     }
 
     protected static boolean create() {

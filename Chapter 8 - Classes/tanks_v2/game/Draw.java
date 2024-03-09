@@ -24,8 +24,21 @@ public class Draw {
     // Static member variables...
     private static Font fontDefault;
     private static Font fonts[] = { null, null, null, null, null, null };
+    private static AffineTransform baseTransform = new AffineTransform();
 
     // Functions...
+    public static AffineTransform getBaseTransform() {
+        return new AffineTransform(baseTransform);
+    }
+    public static double getBaseTransformScale() {
+        return baseTransform.getScaleX();
+    }
+    public static void setBaseTransform(AffineTransform transform) {
+        baseTransform = transform;
+    }
+    public static double getUIScale() {
+        return (double)Window.get().getWidth() / Window.DEFAULT_WINDOW_WIDTH;
+    }
     public static void beginRender(Graphics2D g) {
         if (fontDefault != null) {
             return;
@@ -61,7 +74,8 @@ public class Draw {
         // Setup transform...
         Vec2 drawPos = Vec2.subtract(pos, Vec2.multiply(HEIGHT_OFFSET_PER_HEIGHT, height));
         Vec2 drawPosPixels = Util.toPixels(drawPos);
-        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y);
+        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x * Draw.getBaseTransformScale(), drawPosPixels.y * Draw.getBaseTransformScale());
+        transform.scale(Draw.getBaseTransformScale(), Draw.getBaseTransformScale());
 
         // Draw it...
         drawRectShadow(g, transform, halfDims, scale, colorShadow, roundedRadius, Vec2.zero());
@@ -81,7 +95,8 @@ public class Draw {
         // Setup transform...
         Vec2 drawPos = Vec2.add(pos, Vec2.multiply(HEIGHT_OFFSET_PER_HEIGHT, height));
         Vec2 drawPosPixels = Util.toPixels(drawPos);
-        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y);
+        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x * Draw.getBaseTransformScale(), drawPosPixels.y * Draw.getBaseTransformScale());
+        transform.scale(Draw.getBaseTransformScale(), Draw.getBaseTransformScale());
 
         // Draw it..
         drawRect(g, transform, halfDims, scale, colorFill, colorStroke, strokeWidth, roundedRadius, Vec2.zero());
@@ -104,14 +119,16 @@ public class Draw {
             g.drawRoundRect((int)(geoOffsetPixels.x-halfDimsPixels.x), (int)(geoOffsetPixels.y-halfDimsPixels.y), (int)(halfDimsPixels.x * 2), (int)(halfDimsPixels.y * 2), roundedPixels, roundedPixels);
         }
     }
-    public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, double height, FontSize fontSize, Color color) {
-        drawTextCentered(g, text, pos, height, fontSize, color, null);
+    public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, double height, double scale, FontSize fontSize, Color color) {
+        drawTextCentered(g, text, pos, height, scale, fontSize, color, null);
     }
-    public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, double height, FontSize fontSize, Color color, Color dropShadowColor) {
+    public static void drawTextCentered(Graphics2D g, String text, Vec2 pos, double height, double scale, FontSize fontSize, Color color, Color dropShadowColor) {
         // Basics...
         Vec2 drawPos = Vec2.add(pos, Vec2.multiply(HEIGHT_OFFSET_PER_HEIGHT, height));
         Vec2 drawPosPixels = Util.toPixels(drawPos);
-        g.setTransform(AffineTransform.getTranslateInstance(drawPosPixels.x, drawPosPixels.y));
+        AffineTransform transform = AffineTransform.getTranslateInstance(drawPosPixels.x * Draw.getBaseTransformScale(), drawPosPixels.y * Draw.getBaseTransformScale());
+        transform.scale(Draw.getBaseTransformScale() * scale, Draw.getBaseTransformScale() * scale);
+        g.setTransform(transform);
         g.setFont(fonts[fontSize.ordinal()]);
 
         // Width...

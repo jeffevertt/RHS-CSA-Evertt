@@ -100,6 +100,6 @@ public class PowerUp extends GameObject {
 		Draw.drawRect(g, this.pos, height, POWERUP_HALFDIMS, scale, colorFill, colorStroke, POWERUP_STROKE_WIDTH, POWERUP_ROUNDED_SIZE);
 
 		// Text...
-		Draw.drawTextCentered(g, type, this.pos, height, fontSize, colorText, colorTextShadow);
+		Draw.drawTextCentered(g, type, this.pos, height, 1.0, fontSize, colorText, colorTextShadow);
 	}
 }

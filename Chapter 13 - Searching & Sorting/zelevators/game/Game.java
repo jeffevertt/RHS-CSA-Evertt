@@ -416,14 +416,14 @@ public class Game implements ActionListener {
     protected void Draw(Graphics2D g) {
         // Time remaining...
         for (int playerIdx = 0; playerIdx < getPlayerCount(); ++playerIdx) {
-            Vec2 levelTimePos = Util.toCoordFrame(playerIdx, new Vec2((Window.get().getWidth() - World.FIELD_BORDER_BOT * 2) / 2, World.FIELD_BORDER_TOP / 2));
+            Vec2 levelTimePos = Util.toCoordFrame(playerIdx, new Vec2((Window.get().getWidth() - World.FIELD_BORDER_BOT * 2 * Draw.getUIScale()) / 2, World.FIELD_BORDER_TOP / 2 * Draw.getUIScale()));
             Vec2 levelTimeHalfDims = new Vec2(Util.toCoordFrameLength(playerIdx, LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(playerIdx, LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS.y));
             String levelTimeText = isGamePaused() ? "PAUSED" : Util.toIntStringCeil(gameStats.timeRemaining);
             Color levelTimeColor = isGamePaused() ? Color.BLUE : ((gameStats.timeRemaining < 10) ? Color.red : new Color(50, 160, 130));
             Color levelTimeBckGndColor = isGamePaused() ? Color.YELLOW : ((gameStats.timeRemaining < 10) ? new Color(255, 155, 155) : new Color(235, 235, 235));
             Color levelTimeStroke = (gameStats.timeRemaining < 10) ? Color.RED : Color.DARK_GRAY;
-            Draw.drawRect(playerIdx, g, levelTimePos, levelTimeHalfDims, 1.0, levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get(0).getPixelsPerUnit(), 0.15 * 42 / World.get(0).getPixelsPerUnit());
-            Draw.drawTextCentered(playerIdx, g, levelTimeText, levelTimePos, isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
+            Draw.drawRect(playerIdx, g, levelTimePos, levelTimeHalfDims, Draw.getUIScale(), levelTimeBckGndColor, levelTimeStroke, 0.075 * 42 / World.get(0).getPixelsPerUnit(), 0.15 * 42 / World.get(0).getPixelsPerUnit());
+            Draw.drawTextCentered(playerIdx, g, levelTimeText, levelTimePos, Draw.getUIScale(), isGamePaused() ? Draw.FontSize.XSMALL : Draw.FontSize.LARGE, levelTimeColor, Color.BLACK);
         }
 
         // Player(s)...
@@ -431,22 +431,22 @@ public class Game implements ActionListener {
             ElevatorController controller = getElevatorController(playerIdx);
             if (controller != null) {
                 Vec2 playerHalfDims = new Vec2(Util.toCoordFrameLength(playerIdx, PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x), Util.toCoordFrameLength(playerIdx, PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.y));
-                double playerPosX = (playerIdx == 0) ? (World.FIELD_BORDER_BOT - 3) : (Window.get().getWidth() - World.FIELD_BORDER_BOT * 2 - 3 - PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x * 2);
-                Vec2 playerPos = Vec2.add(Util.toCoordFrame(playerIdx, new Vec2(playerPosX, World.FIELD_BORDER_TOP / 2 + 6)), new Vec2(playerHalfDims.x, 0));
+                double playerPosX = (playerIdx == 0) ? (PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x + 10) * Draw.getUIScale() : Window.get().getWidth() - (PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS.x + 22) * Draw.getUIScale();
+                Vec2 playerPos = Util.toCoordFrame(playerIdx, new Vec2(playerPosX, World.FIELD_BORDER_TOP / 2 * Draw.getUIScale() + 6 * Draw.getUIScale()));
                 String playerText = "Score: " + getPlayerScore(playerIdx);
                 Color playerColor = new Color(50, 180, 50);
                 Color playerBckGndColor = Color.WHITE;
                 Color playerStroke = new Color(10, 70, 10);
-                Draw.drawRect(playerIdx, g, playerPos, playerHalfDims, 1.0, playerBckGndColor, playerStroke, 0.05 * 42 / World.get(0).getPixelsPerUnit(), 0.1 * 42 / World.get(0).getPixelsPerUnit());
-                Draw.drawTextCentered(playerIdx, g, controller.getStudentName(), new Vec2(playerPos.x, playerPos.y + playerHalfDims.y * 0.55), Draw.FontSize.XSMALL, playerColor, Color.BLACK);
-                Draw.drawTextCentered(playerIdx, g, playerText, new Vec2(playerPos.x, playerPos.y - playerHalfDims.y * 0.35), Draw.FontSize.SMALL, playerColor, Color.BLACK);
+                Draw.drawRect(playerIdx, g, playerPos, playerHalfDims, Draw.getUIScale(), playerBckGndColor, playerStroke, 0.05 * 42 / World.get(0).getPixelsPerUnit(), 0.1 * 42 / World.get(0).getPixelsPerUnit());
+                Draw.drawTextCentered(playerIdx, g, controller.getStudentName(), new Vec2(playerPos.x, playerPos.y + playerHalfDims.y * 0.55 * Draw.getUIScale()), Draw.getUIScale(), Draw.FontSize.XSMALL, playerColor, Color.BLACK);
+                Draw.drawTextCentered(playerIdx, g, playerText, new Vec2(playerPos.x, playerPos.y - playerHalfDims.y * 0.35 * Draw.getUIScale()), Draw.getUIScale(), Draw.FontSize.SMALL, playerColor, Color.BLACK);
             }
         }
 
         // End of Game UI...
         if (gameStats.timeRemaining == 0) {
             int playerIdx = (getPlayerCount() == 1) ? 0 : (getPlayerScore(1) > getPlayerScore(0) ? 1 : 0);
-            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(playerIdx), 0.5);
+            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(playerIdx), 0.5 * Draw.getUIScale());
             Color textColor = Color.BLUE;
             Color bckGndColor = new Color(230, 230, 230);
             String finalText = ("Final Score: " + getPlayerScore(0));
@@ -456,7 +456,7 @@ public class Game implements ActionListener {
                                 (getPlayerScore(1) > getPlayerScore(0)) ? ("Winner: " + getElevatorController(1).getStudentName()) : "TIE GAME!!!";
             }
             Draw.drawRect(playerIdx, g, finalTextPos, new Vec2(3.5, 0.5), 1.0, bckGndColor, Color.BLACK, 0.05 * 42 / World.get(0).getPixelsPerUnit(), 0.1 * 42 / World.get(0).getPixelsPerUnit());
-            Draw.drawTextCentered(playerIdx, g, finalText, finalTextPos, Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
+            Draw.drawTextCentered(playerIdx, g, finalText, finalTextPos, Draw.getUIScale(), Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
         }
     }
 }

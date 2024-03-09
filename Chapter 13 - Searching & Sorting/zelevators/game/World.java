@@ -73,7 +73,7 @@ public class World {
     
     // Draw functions...
     private void drawFloors(Graphics2D g) {
-        g.setTransform(new AffineTransform());
+        g.setTransform(Draw.getBaseTransform());
         g.setStroke(new BasicStroke());
         g.setColor(COLOR_FLOOR);
         int floorCount = Game.get().getFloorCount();
@@ -96,7 +96,7 @@ public class World {
 		}
     }
     private void drawElevatorFloorRequestButtons(Graphics2D g) {
-        g.setTransform(new AffineTransform());
+        g.setTransform(Draw.getBaseTransform());
         g.setStroke(new BasicStroke());
         g.setColor(COLOR_FLOOR);
         int elevatorCount = Game.get().getElevatorCount();
@@ -124,7 +124,7 @@ public class World {
 
             // Current floor...
             Vec2 textPos = new Vec2(ELEVATOR_LEFT_RIGHT_SPACE + (ELEVATOR_DOORS_HALFDIMS.x * 2.0) * i + ELEVATOR_SPACING * i + ELEVATOR_DOORS_HALFDIMS.x, (double)floorCount * FLOOR_HEIGHT + 0.1 * FLOOR_HEIGHT + btnRadius * 2 + rowSpace * (numRows - 1));
-            Draw.drawTextCentered(playerIdx, g, "" + (int)(Simulation.get(playerIdx).getElevator(i).getCurrentFloor() + 1), textPos, Draw.fontSizeFromScale(0.25), new Color(255, 140, 20), Color.BLACK);
+            Draw.drawTextCentered(playerIdx, g, "" + (int)(Simulation.get(playerIdx).getElevator(i).getCurrentFloor() + 1), textPos, Draw.getUIScale(), Draw.fontSizeFromScale(0.25), new Color(255, 140, 20), Color.BLACK);
 		}
     }
     protected void drawWorld(Graphics2D g) {

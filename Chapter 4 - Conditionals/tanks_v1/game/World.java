@@ -128,7 +128,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
     
     // Draw functions...
     private void drawGrid(Graphics2D g) {
-        g.setTransform(new AffineTransform());
+        g.setTransform(Draw.getBaseTransform());
         g.setStroke(new BasicStroke());
         g.setColor(COLOR_GRID);
         for (int i = 0; i <= canvasSize.x; i += pixelsPerUnit) {
@@ -144,6 +144,9 @@ public class World extends JPanel implements ActionListener, MouseListener {
         // Setup...
         Draw.beginRender(g);
 
+        // Set the base transform (this deals with HPI screen scaling properly)...
+        Draw.setBaseTransform(g.getTransform());
+        
         // Rendering hints...
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Map<Object, Object> hints = new LinkedHashMap<Object, Object>();
