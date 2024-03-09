@@ -19,7 +19,7 @@ public class Window extends JFrame implements KeyListener {
     }
 
     // Constants...
-    public static final String WINDOW_TITLE = "CS-A: Tanks.v1";
+    public static final String WINDOW_TITLE = "CS-A: Tanks.v2";
     public static final int DEFAULT_WINDOW_WIDTH = 1024;
     public static final int DEFAULT_WINDOW_HEIGHT = 600;
 
