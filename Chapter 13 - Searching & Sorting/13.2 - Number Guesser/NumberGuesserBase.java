@@ -6,7 +6,6 @@
 /******************************************/
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
 
 public class NumberGuesserBase {
     // Consts (numbers are inclusive)
@@ -92,10 +91,7 @@ public class NumberGuesserBase {
         System.out.println("************************************************************\n");
     }
     private boolean runGame(boolean basic, int gameCount) {
-        int[] numbers = generateNumbers(gameCount);
-        if (!basic) {
-            Arrays.sort(numbers);
-        }   
+        int[] numbers = generateNumbers(gameCount);  
         Stats stats = basic ? statsBasic : statsFast;
         for (int i = 0; i < numbers.length; i++) {
             // Save off the current number (for the guess method)
