@@ -40,6 +40,8 @@ public class PracticeTests {
         int[] resultB = { 5, 2 };
         Assert.assertArrayEquals(p.strToList("5; 2", ';'), resultB);
         Assert.assertArrayEquals(p.strToList("5; ;  2", ';'), resultB);
+        int[] resultC = { 12, 51 };
+        Assert.assertArrayEquals(p.strToList("12* 51", '*'), resultC);
         assertNull(p.strToList("5; 2", ','));
         assertNull(p.strToList("5; 1 2", ';'));
     }
