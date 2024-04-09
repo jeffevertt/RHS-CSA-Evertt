@@ -1,3 +1,4 @@
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -23,5 +24,17 @@ public class PracticeTests {
         assertEquals(p.calcSeriesRecursive(2,1,3), 15);
         assertEquals(p.calcSeriesRecursive(-3,10,12), -114);
         assertEquals(p.calcSeriesRecursive(-3,10,0), 0);
-    }    
+    }
+
+    @Test
+    public void createFibonacciArray() {
+        Practice p = new Practice();
+        int[] fibA = { 1, 1, 2, 3, 5 };
+        assertArrayEquals(p.createFibonacciArray(1, 5), fibA);
+        int[] fibB = { 8, 13, 21, 34 };
+        assertArrayEquals(p.createFibonacciArray(5, 4), fibB);
+        assertNull(p.createFibonacciArray(4, 3));
+        int[] fibC = { 233, 377 };
+        assertArrayEquals(p.createFibonacciArray(233, 2), fibC);
+    }
 }
