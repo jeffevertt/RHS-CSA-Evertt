@@ -322,7 +322,7 @@ public class World extends JPanel implements ActionListener, MouseListener {
 
         // Let the renderer do its drawing...
         if ((camera != null) && (renderer != null) && (backBuffer != null)) {
-            // 
+            // Let the renderer draw to the render buffer
             WritableRaster renderTarget = backBuffer.getRaster();
             renderer.render(renderTarget, this, camera);
 
