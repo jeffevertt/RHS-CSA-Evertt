@@ -32,7 +32,7 @@ public class PracticeTests {
         int[] fibA = { 1, 1, 2, 3, 5 };
         assertArrayEquals(p.createFibonacciArray(1, 5), fibA);
         int[] fibB = { 8, 13, 21, 34 };
-        assertArrayEquals(p.createFibonacciArray(5, 4), fibB);
+        assertArrayEquals(p.createFibonacciArray(8, 4), fibB);
         assertNull(p.createFibonacciArray(4, 3));
         int[] fibC = { 233, 377 };
         assertArrayEquals(p.createFibonacciArray(233, 2), fibC);
