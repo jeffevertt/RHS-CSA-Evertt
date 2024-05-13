@@ -177,7 +177,16 @@ public class Elevator extends GameObject {
                     if ((travelDirection == ElevatorController.Direction.Down) || (travelDirection == ElevatorController.Direction.None)) {
                         Simulation.get(playerIdx).remElevatorRequest((int)currentFloor, Direction.Down);
                     }
+                }
+            }
+        }
+        else {
+            // Make sure the doors are open...
+            if (doorClosePerc != 0.0) {
+                doorClosePerc = Math.max(doorClosePerc - DOOR_OPEN_VELOCITY * deltaTime, 0.0f);
 
+                // And then for open (to send arrived notication)...
+                if (doorClosePerc == 0.0) {
                     // Do the controller callback...
                     ElevatorController controller = Game.get().getElevatorController(playerIdx);
                     if (controller != null) {
@@ -186,12 +195,6 @@ public class Elevator extends GameObject {
                         Game.get().setActivePlayerIdx(0);
                     }
                 }
-            }
-        }
-        else {
-            // Make sure the doors are open...
-            if (doorClosePerc != 0.0) {
-                doorClosePerc = Math.max(doorClosePerc - DOOR_OPEN_VELOCITY * deltaTime, 0.0f);
             }
         }
     }
