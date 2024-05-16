@@ -188,6 +188,15 @@ public class Zombie extends GameObject {
                     state = State.WalkingOff;
                     onElevatorIdx = -1;
                 }
+                else if ((Math.abs(elevator.getCurrentFloor() - targetFloor) > 0.5) && 
+                         (onElevatorIdx >= 0) && 
+                         (elevator.getAreDoorsClosed())) {
+                    // Make sure our button is still pressed...
+                    if (!Simulation.get(playerIdx).elevatorHasFloorRequest(onElevatorIdx, targetFloor)) {
+                        // Somehow missed their chance to get off, so press it again...
+                        elevator.requestFloor(targetFloor);
+                    }
+                }
 
                 // Keep us locked to the elevator floor...
                 currentFloor = (int)elevator.getCurrentFloor();
