@@ -10,14 +10,12 @@
  * See PirateConverter.java for details on how to convert to pirate talk.
  */
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Scanner;
-
 public class AppMain {
     private static final String ENGLISH_TEXT_FILENAME = "english-text.txt";
 
     public static void main(String[] args) {
+        // Do not modify the below code. Your class should adhere to the methods
+        //  and structure provided here.
         PirateConverter pirateConverter = new PirateConverter();
         if (pirateConverter.fileToPirateTalk(ENGLISH_TEXT_FILENAME)) {
             System.out.println("-------------- ENGLISH --------------");
