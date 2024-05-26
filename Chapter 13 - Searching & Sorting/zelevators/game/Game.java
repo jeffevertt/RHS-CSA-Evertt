@@ -24,6 +24,8 @@ public class Game implements ActionListener {
     private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(60, 21);
     private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, 28);
 
+    public static final int TEST_HARNESS_SUPPORT    = 0;    // When non-zero, will run the specified timeSteps at a rate of 60 FPS
+
     // Nested classes...
     protected class GameStats {
         public boolean isPaused = false;
@@ -364,7 +366,21 @@ public class Game implements ActionListener {
         long milliSecondsNow = System.currentTimeMillis();
         double deltaTime = (double)(milliSecondsNow - milliSecondsLastUpdate) / 1000;
         milliSecondsLastUpdate = milliSecondsNow;
-        
+
+        // Game update...
+        if (TEST_HARNESS_SUPPORT <= 0) {
+            updateGameInternal(deltaTime);
+        }
+        else {
+            // Test harness support...
+            for (int i = 0; i < TEST_HARNESS_SUPPORT; i++) {
+                updateGameInternal(1 / 60.0f);
+            }
+        }
+    }
+
+    private void updateGameInternal(double deltaTime)
+    {
         // Clamp deltaTime (slow down the sim, if needed)...
         deltaTime = Math.min(deltaTime, 0.1);
         if (gameStats.timeRemaining == 0) {
