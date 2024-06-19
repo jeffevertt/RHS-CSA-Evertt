@@ -12,7 +12,7 @@ public class AppMain {
      * When everything is working properly, your code should output the following...
      *    Rectangle(blue): area = 200.0, perim = 60.0
      *    Square(green): area = 225.0, perim = 60.0
-     *    Rectangle(yellow): area = 78.5, perim = 31.4
+     *    Circle(yellow): area = 78.5, perim = 31.4
      */
     public static void main(String[] args) {
         // Create up some shapes and print them

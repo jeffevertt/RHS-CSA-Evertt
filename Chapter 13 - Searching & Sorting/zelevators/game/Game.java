@@ -107,11 +107,11 @@ public class Game implements ActionListener {
     public double getElevatorFloor(int elevatorIdx) {
         return Simulation.get(gameStats.activePlayerIdx).getElevatorFloor(elevatorIdx);
     }
-    public boolean isElevatorIsOnFloor(int elevatorIdx, int floorIdx) {
-        return Simulation.get(gameStats.activePlayerIdx).isElevatorIsOnFloor(elevatorIdx, floorIdx);
+    public boolean isElevatorOnFloor(int elevatorIdx, int floorIdx) {
+        return Simulation.get(gameStats.activePlayerIdx).isElevatorOnFloor(elevatorIdx, floorIdx);
     }
-    public boolean isElevatorIsHeadingToFloor(int elevatorIdx, int floorIdx) {
-        return Simulation.get(gameStats.activePlayerIdx).isElevatorIsHeadingToFloor(elevatorIdx, floorIdx);
+    public boolean isElevatorHeadingToFloor(int elevatorIdx, int floorIdx) {
+        return Simulation.get(gameStats.activePlayerIdx).isElevatorHeadingToFloor(elevatorIdx, floorIdx);
     }
     public boolean isElevatorIdle(int elevatorIdx) {
         return Simulation.get(gameStats.activePlayerIdx).isElevatorIdle(elevatorIdx);
@@ -237,7 +237,9 @@ public class Game implements ActionListener {
                 if (firstUpdate) {
                     controller.onGameStarted(this);
                 }
-                controller.onUpdate(deltaTime);
+                if (!isGamePaused() || firstUpdate) {
+                    controller.onUpdate(deltaTime);
+                }
             }
         }
         gameStats.activePlayerIdx = 0;

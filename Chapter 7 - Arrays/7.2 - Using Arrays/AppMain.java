@@ -18,7 +18,6 @@ public class AppMain {
     }
 
     // Convert an array of integers into a string.
-    //  *** Your implementation MUST USE THE FOR-EACH SYNTAX FOR ITS LOOPS. ***
     // Example: { 1, 2, 3, 4 } -> 1, 2, 3, 4
     // Example: { -1, 5, 0 } -> -1, 5, 0
     public static String arrayToString(int[] array) {

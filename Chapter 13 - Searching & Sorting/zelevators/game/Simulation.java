@@ -103,14 +103,14 @@ public class Simulation {
         Elevator elevator = elevators.get(elevatorIdx);
         return elevator.getCurrentFloor();
     }
-    protected boolean isElevatorIsOnFloor(int elevatorIdx, int floorIdx) {
+    protected boolean isElevatorOnFloor(int elevatorIdx, int floorIdx) {
         if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
             return false;
         }
         Elevator elevator = elevators.get(elevatorIdx);
         return (elevator.getCurrentFloor() == (double)floorIdx);
     }
-    protected boolean isElevatorIsHeadingToFloor(int elevatorIdx, int floorIdx) {
+    protected boolean isElevatorHeadingToFloor(int elevatorIdx, int floorIdx) {
         if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
             return false;
         }

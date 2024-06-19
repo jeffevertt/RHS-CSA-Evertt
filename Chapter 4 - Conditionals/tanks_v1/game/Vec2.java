@@ -59,7 +59,8 @@ public class Vec2 {
     }
 	
     public Vec2 normalize() {
-		double invLen = 1.0 / this.length();
+		double length = this.length();
+	    double invLen = (length == 0) ? 1.0 : (1.0 / length);
 		this.x *= invLen;
 		this.y *= invLen;
 		return this;

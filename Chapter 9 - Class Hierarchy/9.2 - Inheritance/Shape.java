@@ -1,7 +1,7 @@
 public class Shape {
     // Data
-    public String name;
-    public String color;
+    private String name;
+    private String color;
 
     // Constructor(s)
     public Shape(String name, String color) {
@@ -15,6 +15,12 @@ public class Shape {
     }
     public void setName(String name) {
         this.name = name;
+    }
+    public String getColor() {
+        return color;
+    }
+    public void setColor(String color) {
+        this.color = color;
     }
 
     // Methods (to be overridden by subclasses)

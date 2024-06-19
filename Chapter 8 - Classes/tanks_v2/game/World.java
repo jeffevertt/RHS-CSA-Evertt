@@ -220,6 +220,9 @@ public class World extends JPanel implements ActionListener, MouseListener {
         Game.get().Draw(g);
     }
     public void paint(Graphics g) {
+        if (Simulation.get() == null) {
+            return;
+        }
         drawWorld((Graphics2D)g);
     }
 }

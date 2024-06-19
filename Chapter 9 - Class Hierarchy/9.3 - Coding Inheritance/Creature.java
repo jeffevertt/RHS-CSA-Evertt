@@ -12,6 +12,15 @@ public class Creature {
         this.chanceToDamage = chanceToDamage;
         resetHealth();
     }
+    public int getStrength() {
+        return strength;
+    }
+    public void setHealth(int health) {
+        this.health = health;
+    }
+    public int getHealth() {
+        return health;
+    }
     public boolean isDefeated() {
         return (health <= 0);
     }
