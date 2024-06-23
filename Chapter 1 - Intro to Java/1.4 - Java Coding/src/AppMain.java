@@ -1,4 +1,4 @@
-public class AsciiArt {
+public class AppMain {
     /* List of all requested art...
         Fish: ><(((('>
         Cat: =^..^=
@@ -32,19 +32,44 @@ public class AsciiArt {
                     `-._````  __..--'`
                         ``````
      */
-    
-    public AsciiArt() {
+    public static void main(String[] args) {
+        printFish();
+        printCat();
+        printRose();
+        printWorm();
+        printPersonalMessage();
+        printCaterpillar();
+        printProfessor();
+        printIDontKnow();
+        printMickey();
     }
 
     // Functions to print out requested art
-    public void printFish() {
+    public static void printFish() {
         System.out.println("><(((('>");
     }
-    public void printCat() {
-        System.out.println("=^..^=");
-    }
-    public void printRose() {
+    public static void printCat() {
         // TODO - YOUR CODE GOES HERE
     }
-    // TODO - YOUR FUNCTIONS GOES HERE
+    public static void printRose() {
+        // TODO - YOUR CODE GOES HERE
+    }
+    public static void printWorm() {
+        // TODO - YOUR CODE GOES HERE
+    }
+    public static void printPersonalMessage() {
+        // TODO - YOUR CODE GOES HERE
+    }
+    public static void printCaterpillar() {
+        // TODO - YOUR CODE GOES HERE
+    }
+    public static void printProfessor() {
+        // TODO - YOUR CODE GOES HERE
+    }
+    public static void printIDontKnow() {
+        // TODO - YOUR CODE GOES HERE
+    }
+    public static void printMickey() {
+        // TODO - YOUR CODE GOES HERE
+    }
 }
