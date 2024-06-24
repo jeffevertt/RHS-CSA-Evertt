@@ -1,5 +1,5 @@
 public class AppMain {
-    // Desired output (two different examples, depending on what the constant is set to)...
+    // Desired output (two different examples, depending on what the parameter is set to)...
     // SIZE = 3
     //   #============#
     //   |    <><>    |
@@ -20,6 +20,9 @@ public class AppMain {
     //   |    <>....<>    |
     //   |      <><>      |
     //   #================#
+
+    // Controls the size of the 
+    public static int SIZE = 3;
     
     public static void main(String[] args) {
         drawTopBottom();
