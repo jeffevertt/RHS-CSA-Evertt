@@ -12,7 +12,7 @@ public class StringUtil {
     }
 
     public static String beforeSpace(String input) {
-        // Returns a string containing the portion of the string BEFORE the space
+        // Returns a string containing the portion of the string BEFORE the first space
         //  Example: "abcd ef" -> "abcd"
         // 
         // Requirements...
