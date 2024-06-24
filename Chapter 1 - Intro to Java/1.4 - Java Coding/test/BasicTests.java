@@ -10,35 +10,35 @@ public class BasicTests {
     @Test
     public void testFish() {
         String res = runMethodGetConsoleOut( () -> AppMain.printFish() );
-        assertEquals(res, "><(((('>\r\n");
+        assertEquals("><(((('>\r\n", res);
     }
 
     @Test
     public void testCat() {
         String res = runMethodGetConsoleOut( () -> AppMain.printCat() );
-        assertEquals(res, "=^..^=\r\n");
+        assertEquals("=^..^=\r\n", res);
     }
 
     @Test
     public void testRose() {
         String res = runMethodGetConsoleOut( () -> AppMain.printRose() );
-        assertEquals(res, "--------{---(@\r\n");
+        assertEquals("--------{---(@\r\n", res);
     }
 
     @Test
     public void testWorm() {
         String res = runMethodGetConsoleOut( () -> AppMain.printWorm() );
         assertTrue(res.length() > 10);
-        assertEquals(res.substring(0, 4), "_/\\_");
-        assertEquals(res.substring(res.length() - 7), "\\__0>\r\n");
+        assertEquals("_/\\_", res.substring(0, 4));
+        assertEquals("\\__0>\r\n", res.substring(res.length() - 7));
     }
 
     @Test
     public void testPersonalMessage() {
         String res = runMethodGetConsoleOut( () -> AppMain.printPersonalMessage() );
         assertTrue(res.length() > 20);
-        assertEquals(res.substring(0, 9), "/·._.·\\·.");
-        assertEquals(res.substring(res.length() - 12), "_.·/·._.·\\\r\n");
+        assertEquals("/·._.·\\·.", res.substring(0, 9));
+        assertEquals("_.·/·._.·\\\r\n", res.substring(res.length() - 12));
         
     }
 
@@ -46,8 +46,8 @@ public class BasicTests {
     public void testCaterpillar() {
         String res = runMethodGetConsoleOut( () -> AppMain.printCaterpillar() );
         assertTrue(res.length() > 19);
-        assertEquals(res.substring(0, 12), ",/\\,/\\,/\\,/\\");
-        assertEquals(res.substring(res.length() - 9), "/\\,/\\,o\r\n");
+        assertEquals(",/\\,/\\,/\\,/\\", res.substring(0, 12));
+        assertEquals("/\\,/\\,o\r\n", res.substring(res.length() - 9));
     }
 
     @Test

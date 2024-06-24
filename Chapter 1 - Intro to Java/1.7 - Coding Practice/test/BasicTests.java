@@ -12,18 +12,18 @@ public class BasicTests {
         String res = runMethodGetConsoleOut( () -> Main.exercise5() );
         String[] lines = res.split("\r\n");
         assertTrue(lines.length == 6);
-        assertEquals(lines[0], "A \"quoted\" String is");
-        assertEquals(lines[1], "'much' better if you learn");
-        assertEquals(lines[2], "the rules of \"escape sequences.\"");
-        assertEquals(lines[3], "Also, \"\" represents an empty String.");
-        assertEquals(lines[4], "Don't forget: use \\\" instead of \" !");
-        assertEquals(lines[5], "'' is not the same as \"");
+        assertEquals("A \"quoted\" String is", lines[0]);
+        assertEquals("'much' better if you learn", lines[1]);
+        assertEquals("the rules of \"escape sequences.\"", lines[2]);
+        assertEquals("Also, \"\" represents an empty String.", lines[3]);
+        assertEquals("Don't forget: use \\\" instead of \" !", lines[4]);
+        assertEquals("'' is not the same as \"", lines[5]);
     }
 
     @Test
     public void testExercise6() {
         String res = runMethodGetConsoleOut( () -> Main.exercise6() );
-        assertEquals(res, "Hello, World!\r\n");
+        assertEquals("Hello, World!\r\n", res);
     }
 
     @Test
@@ -31,9 +31,9 @@ public class BasicTests {
         String res = runMethodGetConsoleOut( () -> Main.exercise7() );
         String[] lines = res.split("\r\n");
         assertTrue(lines.length >= 3);
-        assertEquals(lines[0], "There's one thing every coder must understand:");
-        assertEquals(lines[1], "The System.out.println command.");
-        assertEquals(lines[2], "");
+        assertEquals("There's one thing every coder must understand:", lines[0]);
+        assertEquals("The System.out.println command.", lines[1]);
+        assertEquals("", lines[2]);
     }
 
     @Test
@@ -41,11 +41,11 @@ public class BasicTests {
         String res = runMethodGetConsoleOut( () -> Main.exercise8() );
         String[] lines = res.split("\r\n");
         assertTrue(lines.length >= 5);
-        assertEquals(lines[0], "//////////////////////");
-        assertEquals(lines[1], "|| Vectory is mine! ||");
-        assertEquals(lines[2], "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\");
-        assertEquals(lines[3], "|| Vectory is mine! ||");
-        assertEquals(lines[4], "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\");
+        assertEquals("//////////////////////", lines[0]);
+        assertEquals("|| Vectory is mine! ||", lines[1]);
+        assertEquals("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\", lines[2]);
+        assertEquals("|| Vectory is mine! ||", lines[3]);
+        assertEquals("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\", lines[4]);
     }
 
     @Test
@@ -53,10 +53,10 @@ public class BasicTests {
         String res = runMethodGetConsoleOut( () -> Main.exercise9() );
         String[] lines = res.split("\r\n");
         assertTrue(lines.length >= 4);
-        assertEquals(lines[0], "  _______");
-        assertEquals(lines[1], " /       \\");
-        assertEquals(lines[2], "/         \\");
-        assertEquals(lines[3], "-\"-'-\"-'-\"-");
+        assertEquals("  _______", lines[0]);
+        assertEquals(" /       \\", lines[1]);
+        assertEquals("/         \\", lines[2]);
+        assertEquals("-\"-'-\"-'-\"-", lines[3]);
     }
 
     @Test
@@ -64,12 +64,12 @@ public class BasicTests {
         String res = runMethodGetConsoleOut( () -> Main.exercise10() );
         String[] lines = res.split("\r\n");
         assertTrue(lines.length >= 6);
-        assertEquals(lines[0],  "  _______");
-        assertEquals(lines[1],  " /       \\");
-        assertEquals(lines[2],  "/         \\");
-        assertEquals(lines[3],  "\\         /");
-        assertEquals(lines[4],  " \\_______/");
-        assertEquals(lines[5],  "");
+        assertEquals("  _______", lines[0]);
+        assertEquals(" /       \\", lines[1]);
+        assertEquals("/         \\", lines[2]);
+        assertEquals("\\         /", lines[3]);
+        assertEquals(" \\_______/", lines[4]);
+        assertEquals("", lines[5]);
     }
 
     // Console output helper methods
