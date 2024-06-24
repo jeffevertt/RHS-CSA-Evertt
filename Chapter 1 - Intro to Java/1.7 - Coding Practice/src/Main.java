@@ -1,6 +1,6 @@
 public class Main {
     public static void main(String[] args) {
-        // You can add new functions to this class, but
+        // You should add new functions to this class, but
         //  do not modify this function (main).
         System.out.println("--- Exercise 5 ---");
         exercise5();
