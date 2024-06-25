@@ -4,7 +4,7 @@ public class AppMain {
     // These are numbers with a constant difference between then (one in the example above).
     //  Example B: 12, 10, 8, 6, 4, ...
     // Each of the numbers in the sequence are called terms. A sequence can be defined by...
-    //  a1 : the first term in the sequence (3 & 12 in the examples above).
+    //  a1 : the first term in the sequence (3 & 12 in the examples above). Note that this is index 1.
     //  d : the difference between each term (1 and -2 in the examples above).
 
     // Background: Arithmetic series...
@@ -15,11 +15,18 @@ public class AppMain {
     // The program should...
     //  Design multiple classes. Use the guiding principles taught in lesson 8.3 for this. 
     // Your main function should use the classes to test out the examples above, plus a few
-    //  more test cases of your own choosing. 
-    // 
-    // Example output…
+    //  more test cases of your own choosing.
+    //  
+    // After your classes are implemented, the following code should compile...
+    //  Sequence seqA = new Sequence(3, 1);
+    //  Series serA = new Series(seqA);
+    //  System.out.println(seqA);
+    //  System.out.println(serA.toString(5));
+    //
+    // Your output should look like this...
     //  Sequence: 3, 4, 5, 6, 7, 8, ...
     //  Series Sum (5 terms): 25
 
     // Your code goes here...
+    // TODO
 }
