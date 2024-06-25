@@ -13,6 +13,7 @@ public class AppMain {
      *  - Write a method that evaluates y, given a value for x.
      *  - Write a method that evaluates x, given a value for y.
      *  - Write a toString() method that prints the equation for the line.
+     *      Use String.format("%.2f", m) to print doubles with two decimal places.
      *  - Write a method that PRINTS the intersection point with another line.
      * 
      * Your main method should fully test your implementation of line, printing out the
