@@ -39,14 +39,15 @@ public class AppMain {
     //        Ddddddd
     //       Ddddddd
 
-    private static final int UPDATE_LOOPS = 10;
+    public static int UPDATE_LOOPS = 10;
+
+    // Test cases (remove comments to swap test cases)...
+    public static Duck[] ducks = { null, null, null, null, null, new MotherDuck(), new Duck(), new Duck(), new Duck(), null, null };
+    //public static Duck[] ducks = { new MotherDuck(), new Duck(), new Duck(), new Duck(), new Duck(), new Duck(), new Duck(), null, null, null, null, null };
+    //public static Duck[] ducks = { new Duck(), new Duck(), null, null, null, null, null, null, null, null, new MotherDuck(), new Duck() };
 
     public static void main(String[] args) {
-        // Test cases (remove comments to swap test cases)...
-        Duck[] ducks = { null, null, null, null, null, new MotherDuck(), new Duck(), new Duck(), new Duck(), null, null };
-        //Duck[] ducks = { new MotherDuck(), new Duck(), new Duck(), new Duck(), new Duck(), new Duck(), new Duck(), null, null, null, null, null };
-        //Duck[] ducks = { new Duck(), new Duck(), null, null, null, null, null, null, null, null, new MotherDuck(), new Duck() };
-
+        // The main loop - call the below update and render methods
         // TODO
     }
 
