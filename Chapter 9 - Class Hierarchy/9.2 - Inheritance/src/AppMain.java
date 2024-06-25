@@ -13,6 +13,8 @@ public class AppMain {
      *    Rectangle(blue): area = 200.0, perim = 60.0
      *    Square(green): area = 225.0, perim = 60.0
      *    Circle(yellow): area = 78.5, perim = 31.4
+     * 
+     * Note: Use String.format("%.1f", xyz) to print your numbers (clamp to one decimal place).
      */
     public static void main(String[] args) {
         // Create up some shapes and print them
