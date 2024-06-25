@@ -2,7 +2,9 @@
 
 public class AppMain {
     public static void main(String[] args) {
-        // Do not modify the code in this method (edit the methods below main)
+        // Do not remove the code in this method (your code goes in the methods that follow)
+        //  Note that you are encouraged to add additional tests to ensure you methods work 
+        //  correctly for the full range of possible inputs
         System.out.println("--------- arrayToString ---------");
         System.out.println(arrayToString(new int[] { 1, 2, 3, 4 }));
         System.out.println(arrayToString(new int[] { -1, 5, 0 }));
