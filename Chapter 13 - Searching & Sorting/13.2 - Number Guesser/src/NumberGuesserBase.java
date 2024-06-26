@@ -11,7 +11,7 @@ public class NumberGuesserBase {
     // Consts (numbers are inclusive)
     public static final int MIN_NUMBER = 1;
     public static final int MAX_NUMBER = 1000;
-    private static final int MAX_GUESS_COUNT = 10000;
+    private static final int MAX_GUESS_COUNT = 100000;
 
     // Stats
     private class Stats {

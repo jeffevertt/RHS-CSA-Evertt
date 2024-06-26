@@ -10,6 +10,8 @@ public class AppMain {
      *        1 : My number is larger than your guess
      *   - You can guess as many times as you'd like, but I am going
      *       to keep count of how many guesses it took you (and I'm judgmental).
+     *   *** Warning: Every time you call guess(...), that counts as a guess,
+     *                so take care to save the result when you call it. ***
      * 
      * You will write your code in the NumberGuesser class that has already been
      *  stubbed out for you. I'd like you to make TWO implementations...
@@ -29,6 +31,6 @@ public class AppMain {
      */
     public static void main(String[] args) {
         NumberGuesser game = new NumberGuesser();
-        game.runGames(500);
+        game.runGames(2000);
     }
 }
