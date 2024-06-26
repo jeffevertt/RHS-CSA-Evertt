@@ -26,7 +26,7 @@ public class TitanicSimulatorBase {
 
         // Sort by first name...
         ArrayList<Student> sortName = pickStudents(skyward, 6, SortMethod.FIRST_NAME);
-        System.out.println("*** (by firstame) Survivors: " + sortName);
+        System.out.println("** (by firstname) Survivors: " + sortName);
 
         // Sort by student ID...
         ArrayList<Student> sortId = pickStudents(skyward, 8, SortMethod.STUDENT_ID);
