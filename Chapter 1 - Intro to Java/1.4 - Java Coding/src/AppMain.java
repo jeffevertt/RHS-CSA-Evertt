@@ -6,7 +6,7 @@ public class AppMain {
         Worm: _/\__/\__0>
         Personal Message: /·._.·\·._.· Your Text ·._.·/·._.·\
         Caterpillar: ,/\,/\,/\,/\,/\,/\,o 
-        Professor: ""⌐('_')¬""
+        Professor: ""/('_')\""
         I don't know: '\_(*_*)_/'
         Mickey: 
                                  _____
