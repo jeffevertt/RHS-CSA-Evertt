@@ -59,7 +59,7 @@ public class BasicTests {
         assertTrue(res.contains("'._                  .'     .'  `Y888888P`"));
     }
 
-    // Console output helper methods
+    // Console output helper methods (used by the test methods)
     private ByteArrayOutputStream consoleStringOutput = null;
     private PrintStream consoleStringOutputPrev = null;
     private void consoleToString_Push() {
