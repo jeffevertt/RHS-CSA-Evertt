@@ -30,7 +30,9 @@ public class Game implements ActionListener {
     private static final Vec2 LEVELTIMER_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(40, (double)World.FIELD_BORDER_TOP * 0.5);
     private static final Vec2 PLAYER_DISPLAY_TEXT_BOX_HALF_DIMS_PIXELS = new Vec2(85, (double)World.FIELD_BORDER_TOP * 0.55);
 
-    public static final int TEST_HARNESS_SUPPORT    = 0;  // When non-zero, will run the specified timeSteps at a rate of 60 FPS
+    public static final int TEST_HARNESS_SUPPORT    = 0;    // When non-zero, will run the specified timeSteps at a rate of 60 FPS
+
+    public static boolean playWithTargets = false;          // By default, no targets...later we'll add them (main configures this when it creates the game)
 
     // Nested classes...
     protected class GameStats {
@@ -59,7 +61,10 @@ public class Game implements ActionListener {
         return instance;
     }
     public static boolean Create() {
-        return Game.get().create();
+        return Create(false);
+    }
+    public static boolean Create(boolean playWithTargets) {
+        return Game.get().create(playWithTargets);
     }
 
     // Accessors...
@@ -94,7 +99,10 @@ public class Game implements ActionListener {
     private Timer updateTimer;
 
     // Member functions (methods)...
-    protected boolean create() {
+    protected boolean create(boolean playWithTargets) {
+        // Save off our game config...
+        Game.playWithTargets = playWithTargets;
+
         // Create the world...
         if (!Window.create()) {
             return false;
@@ -222,8 +230,7 @@ public class Game implements ActionListener {
     private void onLevelUpdate(double deltaTime, boolean firstUpdate) {
 		// Level specific objects...
         int spawnPowerUpCount = 3;
-        boolean powerUpsOnlyPointsAndSpeed = false;
-		int spawnTargetCount = 3;
+		int spawnTargetCount = playWithTargets ? 3 : 0;
         boolean spawnInCenterOfField = (gameStats.playerCount > 1) && firstUpdate;
 		
 		// If no powerups, spawn one...
@@ -232,7 +239,7 @@ public class Game implements ActionListener {
             Vec2 powerupLocation = pickSpawnLocation(6, 5, 5, 0.9, true, spawnInCenterOfField);
             double powerupRand = Util.randRange(0, 1);
             String powerupType = ((powerupRand < 0.333) ? "P" : ((powerupRand < 0.666) ? "R" : "S"));
-            if (powerUpsOnlyPointsAndSpeed) {
+            if (!playWithTargets) {
                 powerupType = ((powerupRand < 0.5) ? "P" :"S");
             }
             Simulation.get().createPowerUp(powerupLocation, powerupType);

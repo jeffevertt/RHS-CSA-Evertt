@@ -11,15 +11,11 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-// import java.io.File;
-// import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-//import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
