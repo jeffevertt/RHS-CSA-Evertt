@@ -125,6 +125,7 @@ public class Zombie extends GameObject {
                     if (elevator.canAcceptNewZombiePassenger(this)) {
                         // Looks good, make a run for it...
                         state = State.Boarding;
+                        boardingElevatorIdx = elevator.getIndex();
                     }
                 }
 
