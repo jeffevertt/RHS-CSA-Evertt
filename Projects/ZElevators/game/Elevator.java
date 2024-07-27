@@ -17,7 +17,7 @@ public class Elevator extends GameObject {
     private double currentFloor = 0.0;
     private int targetFloor = 0;
     private double doorClosePerc = 1.0;
-    private ElevatorController.Direction travelDirection = ElevatorController.Direction.None; // None == Either/Any-Which-Way
+    private ElevatorController.Direction headingIndicator = ElevatorController.Direction.None; // None == Either/Any-Which-Way
     private boolean floorRequests[] = null;     // Indexed by the floor index (zero based, like everything else)
 
     // Constructors...
@@ -32,7 +32,7 @@ public class Elevator extends GameObject {
         // Init...
         this.doorClosePerc = 1.0;
         this.pos = getPos();
-        this.travelDirection = ElevatorController.Direction.None;
+        this.headingIndicator = ElevatorController.Direction.None;
         this.floorRequests = new boolean[floorCount];
     }
 
@@ -62,11 +62,11 @@ public class Elevator extends GameObject {
     protected void setTargetFloor(int targetFloor) {
         this.targetFloor = targetFloor;
     }
-    protected ElevatorController.Direction getTravelDirection() {
-        return travelDirection;
+    protected ElevatorController.Direction getHeadingIndicator() {
+        return headingIndicator;
     }
-    protected void setTravelDirection(ElevatorController.Direction direction) {
-        travelDirection = direction;
+    protected void setHeadingIndicator(ElevatorController.Direction direction) {
+        headingIndicator = direction;
     }
     protected double getDoorClosedPercent() {
         return doorClosePerc;
@@ -89,9 +89,9 @@ public class Elevator extends GameObject {
         return getAreDoorsOpen() && 
                (getCurrentFloor() == (double)zombie.getCurrentFloor()) && 
                (getNumberOfZombiesOnElevator() < MAX_CAPACITY) &&
-               ((travelDirection == ElevatorController.Direction.None) || 
-                ((travelDirection == ElevatorController.Direction.Up) && (zombie.getTargetFloor() > zombie.getCurrentFloor())) ||
-                ((travelDirection == ElevatorController.Direction.Down) && (zombie.getTargetFloor() < zombie.getCurrentFloor())));
+               ((headingIndicator == ElevatorController.Direction.None) || 
+                ((headingIndicator == ElevatorController.Direction.Up) && (zombie.getTargetFloor() > zombie.getCurrentFloor())) ||
+                ((headingIndicator == ElevatorController.Direction.Down) && (zombie.getTargetFloor() < zombie.getCurrentFloor())));
     }
     protected boolean requestFloor(int floorIdx) {
         if ((floorIdx < 0) || (floorIdx >= floorRequests.length)) {
@@ -171,10 +171,10 @@ public class Elevator extends GameObject {
                 // Check for closed, if so clear the floor reqest...
                 if (doorClosePerc == 1.0) {
                     // Remove any "outside" requests...
-                    if ((travelDirection == ElevatorController.Direction.Up) || (travelDirection == ElevatorController.Direction.None)) {
+                    if ((headingIndicator == ElevatorController.Direction.Up) || (headingIndicator == ElevatorController.Direction.None)) {
                         Simulation.get(playerIdx).remElevatorRequest((int)currentFloor, Direction.Up);
                     }
-                    if ((travelDirection == ElevatorController.Direction.Down) || (travelDirection == ElevatorController.Direction.None)) {
+                    if ((headingIndicator == ElevatorController.Direction.Down) || (headingIndicator == ElevatorController.Direction.None)) {
                         Simulation.get(playerIdx).remElevatorRequest((int)currentFloor, Direction.Down);
                     }
                 }
@@ -191,7 +191,7 @@ public class Elevator extends GameObject {
                     ElevatorController controller = Game.get().getElevatorController(playerIdx);
                     if (controller != null) {
                         Game.get().setActivePlayerIdx(playerIdx);
-                        controller.onElevatorArrivedAtFloor(elevatorIdx, (int)currentFloor, travelDirection);
+                        controller.onElevatorArrivedAtFloor(elevatorIdx, (int)currentFloor, headingIndicator);
                         Game.get().setActivePlayerIdx(0);
                     }
                 }

@@ -13,6 +13,7 @@ public class Zombie extends GameObject {
     public static final Vec2 NOMINAL_HALFDIMS = new Vec2(0.3, 0.48);
     public static final double VERTICAL_OFFSET = -0.035;
     public static final double WALK_SPEED = 1.0;            // In units per second
+    public static final double WALK_SPEED_BOARDING_SPEED_SCALAR = 1.6;
     public static final double STARVATION_TIME = 40;
 
     // Enums...
@@ -31,6 +32,7 @@ public class Zombie extends GameObject {
     private int currentFloor = -1;
     private int targetFloor = -1;
     private int onElevatorIdx = -1;
+    private int boardingElevatorIdx = -1;
     private double waitAreaOffset = World.ZOMBIE_WAITING_AREA_MAX_OFFSET;
     private double walkCycleAnimT = 0;
     private double walkSpeedScalar = 1.0;
@@ -82,7 +84,10 @@ public class Zombie extends GameObject {
         return targetFloor;
     }
     protected boolean isGettingOnElevator(Elevator elevator) {
-        return elevator.canAcceptNewZombiePassenger(this) && ((state == State.Waiting) || (state == State.Boarding));
+        return (elevator.canAcceptNewZombiePassenger(this)) &&
+               (elevator.getCurrentFloor() == (double)currentFloor) &&
+               ((state == State.Waiting) || 
+                ((state == State.Boarding) && (boardingElevatorIdx == elevator.getIndex())));
     }
     protected boolean isOnAnElevator() {
         return (state == State.OnElevator);
@@ -142,10 +147,12 @@ public class Zombie extends GameObject {
                 // Find the target elevator (note that we might no longer have one)...
                 ArrayList<Elevator> elevators = Simulation.get(playerIdx).getElevators();
                 Elevator trgElevator = null;
+                boardingElevatorIdx = -1;
                 for (int i = 0; i < elevators.size(); i++) {
                     Elevator elevator = elevators.get(i);
                     if (elevator.canAcceptNewZombiePassenger(this)) {
                         trgElevator = elevator;
+                        boardingElevatorIdx = trgElevator.getIndex();
                         break;
                     }
                 }
@@ -154,17 +161,18 @@ public class Zombie extends GameObject {
                 if (trgElevator != null) {
                     double trgPosX = trgElevator.getPos().x;
                     if (trgPosX > pos.x) {
-                        pos.x = Math.min(pos.x + WALK_SPEED * walkAnimSpeed * walkSpeedScalar * deltaTime, trgPosX);
+                        pos.x = Math.min(pos.x + WALK_SPEED * WALK_SPEED_BOARDING_SPEED_SCALAR * walkAnimSpeed * walkSpeedScalar * deltaTime, trgPosX);
                         isWalking = true;
                     }
                     else {
-                        pos.x = Math.max(pos.x - WALK_SPEED * walkAnimSpeed * walkSpeedScalar * deltaTime, trgPosX);
+                        pos.x = Math.max(pos.x - WALK_SPEED * WALK_SPEED_BOARDING_SPEED_SCALAR * walkAnimSpeed * walkSpeedScalar * deltaTime, trgPosX);
                         isWalking = true;
                     }
                     if (pos.x == trgPosX) {
                         // Pop, we're on...
                         state = State.OnElevator;
                         onElevatorIdx = trgElevator.getIndex();
+                        boardingElevatorIdx = -1;
 
                         // Request our desired floor...
                         trgElevator.requestFloor(targetFloor);
@@ -176,6 +184,7 @@ public class Zombie extends GameObject {
                     pos.x = Math.max(pos.x - WALK_SPEED * walkAnimSpeed * walkSpeedScalar * deltaTime, trgPosX);
                     if (pos.x <= trgPosX) {
                         state = State.Waiting;
+                        boardingElevatorIdx = -1;
                     }
                     isWalking = true;
                 }

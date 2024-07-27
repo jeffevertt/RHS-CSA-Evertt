@@ -73,19 +73,41 @@ public class Simulation {
         Elevator elevator = elevators.get(elevatorIdx);
         return elevator.hasRequestForFloor(floorIdx);
     }
-    protected void setElevatorTravelDirection(int elevatorIdx, ElevatorController.Direction direction) {
+    protected void setElevatorHeadingIndicator(int elevatorIdx, ElevatorController.Direction direction) {
         if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
             return;
         }
         Elevator elevator = elevators.get(elevatorIdx);
-        elevator.setTravelDirection(direction);
+        elevator.setHeadingIndicator(direction);
     }
-    protected ElevatorController.Direction getElevatorTravelDirection(int elevatorIdx) {
+    protected ElevatorController.Direction getElevatorHeadingIndicator(int elevatorIdx) {
         if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
             return ElevatorController.Direction.None;
         }
         Elevator elevator = elevators.get(elevatorIdx);
-        return elevator.getTravelDirection();
+        return elevator.getHeadingIndicator();
+    }
+    protected ElevatorController.Direction getElevatorCurrentTravelDirection(int elevatorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return ElevatorController.Direction.None;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        double curFloor = elevator.getCurrentFloor();
+        int trgFloor = elevator.getTargetFloor();
+        if ((double)trgFloor > curFloor) {
+            return ElevatorController.Direction.Up;
+        }
+        else if ((double)trgFloor < curFloor) {
+            return ElevatorController.Direction.Down;
+        }
+        return ElevatorController.Direction.None;
+    }
+    protected boolean anyZombiesGettingOnElevator(int elevatorIdx) {
+        if ((elevatorIdx < 0) || (elevatorIdx >= elevators.size())) {
+            return false;
+        }
+        Elevator elevator = elevators.get(elevatorIdx);
+        return anyZombiesGettingOnElevator(elevator);
     }
     protected boolean anyZombiesGettingOnElevator(Elevator elevator) {
         for (int i = 0; i < zombies.size(); ++i) {

@@ -15,9 +15,9 @@ public class OtherElevatorController implements ElevatorController {
     public String getStudentName() { return "<NONE>"; }
     public int getStudentPeriod() { return -1; }
     public void onGameStarted(Game game) { }
-    public void onElevatorRequestChanged(int floorIdx, Direction dir, boolean reqEnable) { }
-    public void onFloorRequestChanged(int elevatorIdx, int floorIdx, boolean reqEnable) { }
-    public void onElevatorArrivedAtFloor(int elevatorIdx, int floorIdx, Direction travelDirection) { }
+    public void onElevatorRequestChanged(int floorIdx, Direction dir, boolean enableRequest) { }
+    public void onFloorRequestChanged(int elevatorIdx, int floorIdx, boolean enableRequest) { }
+    public void onElevatorArrivedAtFloor(int elevatorIdx, int floorIdx, Direction headingDirection) { }
     public void onUpdate(double deltaTime) { }
 
     // PASTE Other Person's code HERE (ABOVE THIS)

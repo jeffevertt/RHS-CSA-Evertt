@@ -77,33 +77,35 @@ public class Game implements ActionListener {
     public boolean isInitialized() {
         return initialized;
     }
-    public double getLevelTimeRemaining() {
-        return gameStats.timeRemaining;
-    }
-    public int getLevelTimeMax() {
-        return gameStats.gameTimeInSecondsMax;
-    }
+    
     public int getElevatorCount() {
         return (gameConfig == null) ? -1 : gameConfig.elevatorCount;
     }
     public int getFloorCount() {
         return (gameConfig == null) ? -1 : gameConfig.floorCount;
     }
-    public void setElevatorTravelDirection(int elevatorIdx, ElevatorController.Direction travelDirection) {
-        Simulation.get(gameStats.activePlayerIdx).setElevatorTravelDirection(elevatorIdx, travelDirection);
+
+    public boolean isElevatorIdle(int elevatorIdx) {
+        return Simulation.get(gameStats.activePlayerIdx).isElevatorIdle(elevatorIdx);
     }
-    public ElevatorController.Direction getElevatorTravelDirection(int elevatorIdx) {
-        return Simulation.get(gameStats.activePlayerIdx).getElevatorTravelDirection(elevatorIdx);
-    }    
-    public boolean hasElevatorRequestUp(int floorIdx) {
+
+    public boolean elevatorHasUpRequest(int floorIdx) {
         return Simulation.get(gameStats.activePlayerIdx).hasElevatorRequest(floorIdx, Direction.Up);
     }
-    public boolean hasElevatorRequestDown(int floorIdx) {
+    public boolean elevatorHasDownRequest(int floorIdx) {
         return Simulation.get(gameStats.activePlayerIdx).hasElevatorRequest(floorIdx, Direction.Down);
     }
     public boolean elevatorHasFloorRequest(int elevatorIdx, int floorIdx) {
         return Simulation.get(gameStats.activePlayerIdx).elevatorHasFloorRequest(elevatorIdx, floorIdx);
     }
+
+    public void setElevatorHeadingIndicator(int elevatorIdx, ElevatorController.Direction headingDirection) {
+        Simulation.get(gameStats.activePlayerIdx).setElevatorHeadingIndicator(elevatorIdx, headingDirection);
+    }
+    public ElevatorController.Direction getElevatorHeadingIndicator(int elevatorIdx) {
+        return Simulation.get(gameStats.activePlayerIdx).getElevatorHeadingIndicator(elevatorIdx);
+    }
+
     public double getElevatorFloor(int elevatorIdx) {
         return Simulation.get(gameStats.activePlayerIdx).getElevatorFloor(elevatorIdx);
     }
@@ -113,9 +115,20 @@ public class Game implements ActionListener {
     public boolean isElevatorHeadingToFloor(int elevatorIdx, int floorIdx) {
         return Simulation.get(gameStats.activePlayerIdx).isElevatorHeadingToFloor(elevatorIdx, floorIdx);
     }
-    public boolean isElevatorIdle(int elevatorIdx) {
-        return Simulation.get(gameStats.activePlayerIdx).isElevatorIdle(elevatorIdx);
+    public boolean anyZombiesGettingOnElevator(int elevatorIdx) {
+        return Simulation.get(gameStats.activePlayerIdx).anyZombiesGettingOnElevator(elevatorIdx);
     }
+    public ElevatorController.Direction getElevatorCurrentTravelDirection(int elevatorIdx) {
+        return Simulation.get(gameStats.activePlayerIdx).getElevatorHeadingIndicator(elevatorIdx);
+    }
+
+    public double getLevelTimeRemaining() {
+        return gameStats.timeRemaining;
+    }
+    public int getLevelTimeMax() {
+        return gameStats.gameTimeInSecondsMax;
+    }
+
     public int getPlayerScore() {
         return getPlayerScore(gameStats.activePlayerIdx);
     }
