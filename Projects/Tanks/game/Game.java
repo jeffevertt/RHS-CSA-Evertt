@@ -424,7 +424,7 @@ public class Game implements ActionListener {
 
         // Winner UI...
         if (gameStats.timeRemaining == 0) {
-            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(), 0.5 * Draw.getUIScale());
+            Vec2 finalTextPos = Vec2.multiply(Util.maxCoordFrameUnits(), 0.5);
             String finalText = (gameStats.playerCount == 1) ? ("Final Score: " + gameStats.levelScore) :
                                     ((gameStats.levelScore == gameStats.levelScore2) ? "TIE GAME!" :  
                                         ((gameStats.levelScore > gameStats.levelScore2) ? (getTank(0).getPlayerName() + " WINS!") : (getTank(1).getPlayerName() + " Wins!")));
@@ -434,7 +434,7 @@ public class Game implements ActionListener {
             Color bckGndColor = (gameStats.playerCount == 1) ? new Color(220, 245, 220) : 
                                     ((gameStats.levelScore == gameStats.levelScore2) ? Color.LIGHT_GRAY :  
                                         ((gameStats.levelScore > gameStats.levelScore2) ? new Color(220, 245, 220) : new Color(220, 220, 245)));
-            Draw.drawRect(g, finalTextPos, 0, new Vec2(7.5, 1), Draw.getUIScale(), bckGndColor, Color.BLACK, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
+            Draw.drawRect(g, finalTextPos, 0, new Vec2(7.5 / Math.sqrt(Draw.getUIScale()), 1), Draw.getUIScale(), bckGndColor, Color.BLACK, 0.05 * 42 / World.get().getPixelsPerUnit(), 0.1 * 42 / World.get().getPixelsPerUnit());
             Draw.drawTextCentered(g, finalText, finalTextPos, 0, Draw.getUIScale(), Draw.FontSize.XLARGE, textColor, Color.BLACK);                                       
         }
     }

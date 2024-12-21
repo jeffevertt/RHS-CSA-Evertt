@@ -121,9 +121,9 @@ public class Vec2 {
 
 	public String toStringWithCommaDelimiter() {
 		Vec2 v = new Vec2(this.x, this.y);
-		v.x = Math.round(v.x * 1000) / 1000;
-		v.y = Math.round(v.y * 1000) / 1000;
-		return "(" + v.x + "," + v.y + ")";
+		v.x = Math.round(v.x * 1000) / 1000.0;
+		v.y = Math.round(v.y * 1000) / 1000.0;
+		return String.format("(%.2f, %.2f)", v.x, v.y);
 	}
 
 	// Static functions...
