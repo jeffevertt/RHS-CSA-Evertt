@@ -9,6 +9,8 @@ public class Main {
     //  Open app\Camera.java for details on the lab/project.
     // 
     // After implementing the camera, there are other opportunities to extend the app. 
+    //  To be able to earn any extra credit that is offered, you must completed one of these
+    // or come up with your own of a similar scale of complexity. 
     //  Here are a few...
     //    - Tweaking how the world is build, look at the app\World.java code to start.
     //    - Adding a light on the player/camera. This would require adding code to the
