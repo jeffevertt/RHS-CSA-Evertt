@@ -93,6 +93,17 @@ public class PizzaOrder {
                 fitness += pizzas.get(pizza).perfFactor(preferences);
             }
         }
+
+        // If there is more than slices remaining, then not fit at all
+        int remainingSliceCount = 0;
+        for (int i = 0; i < sliceCount.length; i++) {
+            remainingSliceCount += sliceCount[i];
+        }
+        if (remainingSliceCount > PreferenceSolver.SLICES_PER_PIZZA) {
+            return 0;
+        }
+
+        // Use the computed fitness from the pseudo dot products above
         return fitness;
     }
 
