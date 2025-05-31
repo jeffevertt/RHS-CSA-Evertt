@@ -166,6 +166,12 @@ def distancePointToLine(point, linePoint, lineDirUnit):
     v = point - linePoint
     u = v - lineDirUnit * dot(v, lineDirUnit)
     return u.length()
+def distancePointToSegment(point, segStart, segDir):
+    v = point - segStart
+    segDirLen = length(segDir)
+    segDirUnit = segDir * (1.0 / max(segDirLen, 0.0000001))
+    closestPt = segStart + (segDirUnit * clamp(dot(v, segDirUnit), 0, segDirLen))
+    return length(point - closestPt)
 def distancePointToPlane(point, linePoint, lineNormalUnit):
     v = point - linePoint
     return dot(v, lineNormalUnit)
