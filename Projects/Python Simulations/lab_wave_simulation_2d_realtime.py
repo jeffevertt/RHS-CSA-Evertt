@@ -16,7 +16,7 @@ from lib.utils import *
 # configuration
 WIDTH_SIM, HEIGHT_SIM = 100, 100
 WIDTH_WINDOW, HEIGHT_WINDOW = WIDTH_SIM * 8, HEIGHT_SIM * 8
-DAMPING = 0.95
+DAMPING = 0.975
 MOUSE_DRAW_RADIUS = 2.5
 MOUSE_DRAW_PRESSURE = 0.75
 
@@ -27,6 +27,7 @@ heightNext = np.zeros((WIDTH_SIM, HEIGHT_SIM))
 
 # pygame setup
 pygame.init()
+pygame.display.set_caption("2D Realtime Wave Simulation")
 screen = pygame.display.set_mode((WIDTH_WINDOW, HEIGHT_WINDOW))
 clock = pygame.time.Clock()
 
